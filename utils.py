@@ -4,7 +4,7 @@ import socket
 import uuid
 from pathlib import Path
 import requests
-import qrcode
+import segno
 
 
 def get_or_create_device_id():
@@ -40,15 +40,8 @@ def register_device():
 
 def generate_qrcode(device_uuid):
     data = "plantmonitor://pair?token="+device_uuid
-    qr = qrcode.QRCode(
-        version=1,
-        box_size=1,
-        border=1,
-    )
-    qr.add_data(data)
-    qr.make(fit=True)
-
-    qr.print_ascii(invert=True)
+    qr = segno.make(data)
+    qr.terminal()
 
 
 def automatic_read_sensors():
