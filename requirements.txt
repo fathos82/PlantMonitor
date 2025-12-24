@@ -4,7 +4,6 @@ django-qrcode==0.3
 idna==3.11
 paho-mqtt==2.1.0
 pillow==12.0.0
-qrcode==8.2
 requests==2.32.5
 segno==1.6.6
 urllib3==2.6.2
