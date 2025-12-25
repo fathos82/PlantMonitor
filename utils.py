@@ -4,6 +4,8 @@ import socket
 import time
 import uuid
 from pathlib import Path
+
+import paho.mqtt.client as mqtt
 import requests
 import segno
 
@@ -48,8 +50,17 @@ def generate_qrcode_to_set_account(device_uuid):
 
 
 
+BROKER = "localhost"
+PORT = 1883
+TOPIC = "teste/topico"
+
+client = mqtt.Client()
+client.connect(BROKER, PORT, 60)
+
 def send_data(data):
-    print("sending data: "+str(data))
+    payload = json.dumps(data)
+    client.publish(TOPIC, payload)
+    print("sending data via mqtt:", payload)
 
 
 
