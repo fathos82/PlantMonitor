@@ -50,7 +50,7 @@ def generate_qrcode_to_set_account(device_uuid):
 
 
 
-BROKER = "localhost"
+BROKER = "192.168.0.107"
 PORT = 1883
 TOPIC = "teste/topico"
 
