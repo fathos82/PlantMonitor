@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+import time
 import uuid
 from pathlib import Path
 import requests
@@ -38,17 +39,18 @@ def register_device():
 
 
 
-def generate_qrcode(device_uuid):
+def generate_qrcode_to_set_account(device_uuid):
     data = "plantmonitor://pair?token="+device_uuid
     qr = segno.make(data)
-    qr.terminal()
+    qr.terminal(border=2, compact=True)
+    while True:# todo: verify is_confirmed
+        time.sleep(1)
 
 
-def automatic_read_sensors():
-    pass
 
-def register_sensor(sensor):
-    pass
+def send_data(data):
+    print("sending data: "+str(data))
+
 
 
 
