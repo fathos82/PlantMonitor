@@ -10,19 +10,13 @@ class SensorFactory:
 
     def create(self, sensor_data: dict):
         try:
-            print('Model',sensor_data["model"])
             sensor_type = SensorModel(sensor_data["model"])
-            print(sensor_type)
-            print("Name: ", sensor_type.name)
         except ValueError:
             raise ValueError(f"Modelo inválido recebido da API: {sensor_data['model']}")
 
         if sensor_type not in self._REGISTRY:
             raise ValueError(f"Sensor não suportado: {sensor_type}")
-        print("Classes registradas: ",  self._REGISTRY[sensor_type])
         sensor_cls = self._REGISTRY[sensor_type]
-        print("CLASSE: ",sensor_cls)
-        print(sensor_data.get("parameters", {}))
         sensor = sensor_cls(**sensor_data.get("parameters", {}))
         sensor.api_id = sensor_data.get("id")
         return sensor

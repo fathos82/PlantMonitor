@@ -9,7 +9,7 @@ from sensors.sensors import SensorModel
 
 class SensorPool:
     def __init__(self):
-        self.sensors: Dict[int, AbstractSensor] = {}
+        self.sensors_map: Dict[int, AbstractSensor] = {}
         self.register_sensors_to_factory()
     def register_sensors_to_factory(self):
         sensor_factory.register(SensorModel.HC_SR04, HCSR04DistanceSensor)
@@ -33,23 +33,22 @@ class SensorPool:
             except Exception as e:
                 log(f"Erro no probe ({sensor_name}): {e}", level=LogLevel.ERROR, context=LogContext.SENSOR)
 
-        log(f"Varredura concluída ({len(self.sensors)} sensor(es))", context=LogContext.SENSOR)
+        log(f"Varredura concluída ({len(self.sensors_map)} sensor(es))", context=LogContext.SENSOR)
         return sensors
     def get_sensors_from_api(self, device_uuid, since=None):
         # todo: add logs
         sensors = []
         result = get_sensors_from_api_by_device_uuid(device_uuid, since)
-        print("RESULTADOS: ", result)
         for sensor in result:
             try:
-                print("SENSOR: ", sensor)
                 sensors.append(sensor_factory.create(sensor))
             except Exception as e:
                 #todo: logs
                 pass
-        print(sensors)
         return sensors
-
+    @property
+    def sensors(self):
+        return self.sensors_map.values()
     def discover(self, device_uuid):
         # todo: add locks
 
@@ -60,7 +59,7 @@ class SensorPool:
         registered_sensors = []
         registered_sensors.extend(self.get_sensors_from_api(device_uuid))
 
-        if not self.sensors:
+        if not self.sensors_map:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
 
@@ -74,7 +73,7 @@ class SensorPool:
                 )
                 # todo: cuidado, rever isso, pq mexer aqui ira mexer em um looping em execução
                 sensor.api_id = json['id']
-                self.sensors[sensor.api_id] = sensor
+                self.sensors_map[sensor.api_id] = sensor
 
 
             except Exception as e:
@@ -83,4 +82,5 @@ class SensorPool:
 
         # todo: add logs
         for sensor in registered_sensors:
-            self.sensors[sensor.api_id] = sensor
+            print("Salvando Sensor")
+            self.sensors_map[sensor.api_id] = sensor
