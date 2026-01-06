@@ -80,8 +80,8 @@ class SensorPool:
 
         # todo: add logs
         for sensor in registered_sensors:
-            print("Salvando Sensor")
-            self.sensors_map[sensor.api_id] = sensor
+            if sensor.probe():
+                self.sensors_map[sensor.api_id] = sensor
 
         if not self.sensors_map:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
