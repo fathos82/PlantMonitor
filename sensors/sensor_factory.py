@@ -10,6 +10,7 @@ class SensorFactory:
 
     def create(self, sensor_data: dict):
         try:
+            print('Model',sensor_data["model"])
             sensor_type = SensorModel(sensor_data["model"])
             print(sensor_type)
             print(sensor_type.name)
