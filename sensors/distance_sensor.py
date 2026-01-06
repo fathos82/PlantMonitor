@@ -48,36 +48,48 @@ class HCSR04DistanceSensor(AbstractSensor):
         """
         Retorna a distância em centímetros.
         """
+        print("[HC-SR04] Iniciando leitura")
+
         if not self.is_initialized:
+            print("[HC-SR04] Sensor não inicializado, executando setup()")
             self.setup()
 
+        # Pulso de trigger
         GPIO.output(self.trigger_pin, GPIO.HIGH)
         time.sleep(0.00001)
         GPIO.output(self.trigger_pin, GPIO.LOW)
+        print("[HC-SR04] Trigger enviado")
 
         timeout_start = time.time() + 0.05
         timeout_end = time.time() + 0.05
 
+        # Aguarda início do echo
         while GPIO.input(self.echo_pin) == 0:
             if time.time() > timeout_start:
+                print("[HC-SR04] Timeout aguardando início do ECHO")
                 raise RuntimeError("Timeout aguardando ECHO (start)")
 
         start = time.time()
+        print("[HC-SR04] ECHO iniciado")
 
+        # Aguarda fim do echo
         while GPIO.input(self.echo_pin) == 1:
             if time.time() > timeout_end:
+                print("[HC-SR04] Timeout aguardando fim do ECHO")
                 raise RuntimeError("Timeout aguardando ECHO (end)")
 
         end = time.time()
+        print("[HC-SR04] ECHO finalizado")
 
         duration = end - start
         distance_cm = (duration * 34300) / 2
+
+        print(f"[HC-SR04] Distância: {distance_cm:.2f} cm")
 
         return {
             "distance_cm": round(distance_cm, 2),
             "timestamp": time.time()
         }
-
 
     @property
     def local_id(self) -> str:
