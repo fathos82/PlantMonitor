@@ -85,13 +85,11 @@ class HCSR04DistanceSensor(AbstractSensor):
 
         start = time.time()
         print("[HC-SR04][READ] ECHO iniciado")
-
         # Aguarda fim do echo
         while GPIO.input(self.echo_pin) == 1:
             if time.time() > timeout_end:
                 print("[HC-SR04][READ][ERRO] Timeout aguardando fim do ECHO")
                 raise RuntimeError("Timeout aguardando ECHO (end)")
-
         end = time.time()
         print("[HC-SR04][READ] ECHO finalizado")
 
