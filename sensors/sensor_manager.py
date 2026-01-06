@@ -10,6 +10,7 @@ from sensors.sensors import SensorModel
 class SensorPool:
     def __init__(self):
         self.sensors: Dict[int, AbstractSensor] = {}
+        self.register_sensors_to_factory()
     def register_sensors_to_factory(self):
         sensor_factory.register(SensorModel.HC_SR04, HCSR04DistanceSensor)
 
