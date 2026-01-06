@@ -1,29 +1,106 @@
-import random
+import json
 from abc import ABC, abstractmethod
+from typing import List, Optional, Dict
+
+
+from enum import Enum
+
+
+class SensorCapability(str, Enum):
+    # Distância / Proximidade
+    DISTANCE = "distance"
+    PROXIMITY = "proximity"
+
+    # Ambiente
+    TEMPERATURE = "temperature"
+    HUMIDITY = "humidity"
+    PRESSURE = "pressure"
+    LIGHT = "light"
+
+    # Movimento / Posição
+    ACCELERATION = "acceleration"
+    GYROSCOPE = "gyroscope"
+    ORIENTATION = "orientation"
+
+    # Qualidade / Status
+    SIGNAL_STRENGTH = "signal_strength"
+    QUALITY = "quality"
+    STATUS = "status"
+
+    # Energia
+    VOLTAGE = "voltage"
+    CURRENT = "current"
+    POWER = "power"
+    BATTERY_LEVEL = "battery_level"
 
 
 class AbstractSensor(ABC):
+
+    """
+    Contrato base para qualquer sensor físico ou lógico
+    """
+
+    # ===== Identidade do sistema =====
+    api_id: Optional[int] = None          # ID retornado pela API
+    capabilities:List[SensorCapability] = []
+    is_initialized: bool = False
+    # ===== Identidade física =====
+    hardware_id: Optional[str] = None     # I2C addr, ROM ID, VID:PID
+
+    # ===== Metadados =====
+    sensor_name: Optional[str] = None
+    model: Optional[str] = None
+    interface = "GPIO"       # I2C, GPIO, USB, 1WIRE, SPI
+
+    # ===== Ciclo de vida =====
     @abstractmethod
     def probe(self) -> bool:
-        """Detecta se o sensor existe"""
+        """Detecta se o sensor existe fisicamente"""
         raise NotImplementedError
+
     @abstractmethod
-    def setup(self):
-        """Configura o sensor"""
-        pass
-    @abstractmethod
-    def read(self) -> dict:
-        """Lê os dados"""
+    def setup(self) -> None:
+        """Configura o sensor após detecção"""
         raise NotImplementedError
+
     @abstractmethod
+    def read(self) ->  Dict[str, float]:
+        """Retorna leitura atual do sensor"""
+        raise NotImplementedError
+
     def health(self) -> bool:
-        """Verifica se está saudável"""
+        """Verifica se o sensor está saudável"""
         return True
 
 
+    # ===== Identificador físico determinístico =====
+    @property
     @abstractmethod
-    def capabilities(self):
-        pass
+    def local_id(self) -> str:
+        """
+        Ex:
+          I2C:1:0x76
+          GPIO:17:YL-69
+          1WIRE:28-xxxx
+        """
+        raise NotImplementedError
+    @property
+    def capabilities_values(self):
+        return [cap.value for cap in self.capabilities]
+    # ===== Serialização =====
+    def to_dict(self) -> dict:
+        return {
+            "apiId": self.api_id,
+            "localId": self.local_id,
+            "model": self.model,
+            "interface": self.interface,
+            "capabilities": self.capabilities_values,
+            "healthy": self.health(),
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), ensure_ascii=False)
+
 
 
 

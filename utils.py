@@ -9,59 +9,150 @@ import paho.mqtt.client as mqtt
 import requests
 import segno
 
+from sensors.sensors import AbstractSensor
+from settings import log
 
-def get_or_create_device_id():
-    DEVICE_ID_FILE = "/etc/plantmonitor"
-    path = Path(DEVICE_ID_FILE)
+
+
+def register_or_get_device():
+    DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
+    context = "DEVICE"
+    url = "http://192.168.0.107:8080/api/devices/"
+    # todo: data get para verificar se foi mesmo salvo!
+    log("Verificando se o dispositivo já está registrado", context=context)
+
+    path = Path(DEVICE_UUID_FILE)
+
     if path.exists():
-        return path.read_text().strip()
-    os.makedirs(os.path.dirname(DEVICE_ID_FILE), exist_ok=True)
-    device_id = str(uuid.uuid4())
-    path.write_text(device_id)
-    return device_id
+        device_uuid = path.read_text().strip()
+        log(
+            f"Dispositivo já registrado anteriormente (ID: {device_uuid})",
+            context=context
+        )
+        return device_uuid
+
+    log(
+        "Dispositivo não encontrado. Iniciando novo registro",
+        level="warning",
+        context=context
+    )
+
+    os.makedirs(os.path.dirname(DEVICE_UUID_FILE), exist_ok=True)
+
+    device_uuid = str(uuid.uuid4())
 
 
+    log(
+        f"Identificador único do dispositivo gerado: {device_uuid}",
+        context=context
+    )
 
-
-def register_device():
-    print("registering device on api")
-    print("generating uuid device: ")
-    # todo: verifica se ja não existe registro
-    uuid = get_or_create_device_id()
-    print("uuid: ", uuid)
     payload = {
-        "deviceUid": uuid,
+        "deviceUid": device_uuid,
         "deviceType": "raspberrypi",
-        "name": "Sem Nome", # todo: alterar isso
-        "hostname":  socket.gethostname(),
+        "name": "Sem Nome",  # TODO: tornar configurável
+        "hostname": socket.gethostname(),
     }
-    url = 'http://192.168.0.107:8080/api/devices/'
-    response = requests.post(url, json=payload)
-    return uuid
 
+    log("Enviando dados do dispositivo para a API", context=context)
+
+    try:
+        response = requests.post(url, json=payload, timeout=5)
+
+        if response.status_code in (200, 201):
+            log(
+                "Dispositivo registrado com sucesso na API",
+                context=context
+            )
+            path.write_text(device_uuid)
+        else:
+            log(
+                f"API respondeu com erro ({response.status_code}): {response.text}",
+                level="error",
+                context=context
+            )
+
+    except requests.exceptions.RequestException as e:
+        log(
+            f"Falha ao comunicar com a API: {e.__cause__}",
+            level="critical",
+            context=context
+        )
+
+
+    return device_uuid
+
+
+
+import requests
+from settings import log, LogLevel, LogContext
+
+
+def register_sensor_on_api(sensor_name, capabilities, device_uuid):
+    url = "http://192.168.0.107:8080/api/sensors/"
+
+    log(f"Registrando sensor {sensor_name}", context=LogContext.API)
+
+    payload = {
+        "deviceUuId": device_uuid,
+        "sensorName": sensor_name,
+        "capabilities": capabilities,
+    }
+
+    try:
+        print(payload)
+        response = requests.post(url, json=payload, timeout=5)
+
+        if response.status_code in (200, 201):
+            log(f"Sensor registrado: {sensor_name}", context=LogContext.API)
+            return response.json()
+
+        log(
+            f"Falha ao registrar sensor {sensor_name} (HTTP {response.status_code})",
+            level=LogLevel.ERROR,
+            context=LogContext.API
+        )
+        return None
+
+    except requests.exceptions.RequestException as e:
+        log(
+            f"Erro ao registrar sensor {sensor_name}: {e}",
+            level=LogLevel.ERROR,
+            context=LogContext.API
+        )
+        return None
+
+    # todo: add logs response
 
 
 def generate_qrcode_to_set_account(device_uuid):
-    data = "plantmonitor://pair?token="+device_uuid
+    data = "plantmonitor://pair?token=" + device_uuid
     qr = segno.make(data)
     qr.terminal(border=2, compact=True)
-    while True:# todo: verify is_confirmed
+    while True:  # todo: verify is_confirmed
         time.sleep(1)
-
 
 
 BROKER = "192.168.0.107"
 PORT = 1883
-TOPIC = "teste/topico"
+TOPIC = "plant/data"
 
 client = mqtt.Client()
 client.connect(BROKER, PORT, 60)
 
-def send_data(data):
-    payload = json.dumps(data)
-    client.publish(TOPIC, payload)
-    print("sending data via mqtt:", payload)
 
+def send_data(data, sensor:AbstractSensor, timestamp):
+    try:
+        map_data = {
+            "type": "TEMPERATURE",
+            "unit": "celsius",
+            "value": data[0],
+            "sensorId": sensor.api_id,
+            "measuredAt": str(timestamp)
+        }
+        payload = json.dumps(map_data)
+        client.publish(TOPIC, payload)
 
-
-
+        print("sending data via mqtt:", payload)
+    except Exception as e:
+        print(e)
