@@ -43,9 +43,9 @@ class SensorPool:
             try:
                 sensors.append(sensor_factory.create(sensor))
             except Exception as e:
-                print(e)
                 #todo: logs
                 pass
+        print(sensors)
         return sensors
 
     def discover(self, device_uuid):
