@@ -11,6 +11,8 @@ class SensorFactory:
     def create(self, sensor_data: dict):
         try:
             sensor_type = SensorModel(sensor_data["model"])
+            print(sensor_type)
+            print(sensor_type.name)
         except ValueError:
             raise ValueError(f"Modelo inválido recebido da API: {sensor_data['model']}")
 
