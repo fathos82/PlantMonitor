@@ -50,7 +50,7 @@ def main():
         with ThreadPoolExecutor(max_workers=len(sensor_pool.sensors)) as executor:
             for sensor in sensor_pool.sensors:
                 executor.submit(run, sensor, stop_event)
-
+        stop_event.clear()
 
 
 if __name__ == '__main__':
