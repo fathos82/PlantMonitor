@@ -20,6 +20,8 @@ class SensorFactory:
         if sensor_type not in self._REGISTRY:
             raise ValueError(f"Sensor não suportado: {sensor_type}")
         sensor_cls = self._REGISTRY[sensor_type]
+        print("CLASSE: ",sensor_cls)
+        print(sensor_data.get("parameters", {}))
         sensor = sensor_cls(**sensor_data.get("parameters", {}))
         sensor.api_id = sensor_data.get("id")
         return sensor
