@@ -45,6 +45,7 @@ class SensorPool:
             except Exception as e:
                 #todo: logs
                 pass
+        print("SENSORES: ", sensors)
         return sensors
     @property
     def sensors(self):
@@ -59,9 +60,6 @@ class SensorPool:
         registered_sensors = []
         registered_sensors.extend(self.get_sensors_from_api(device_uuid))
 
-        if not self.sensors_map:
-            log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
-            return
 
         for sensor in possible_new_sensors:
             sensor_name = sensor.__class__.__name__
@@ -84,3 +82,7 @@ class SensorPool:
         for sensor in registered_sensors:
             print("Salvando Sensor")
             self.sensors_map[sensor.api_id] = sensor
+
+        if not self.sensors_map:
+            log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
+            return
