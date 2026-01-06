@@ -4,13 +4,10 @@ import socket
 import time
 import uuid
 from pathlib import Path
-
 import paho.mqtt.client as mqtt
-import requests
 import segno
 
 from sensors.sensors import AbstractSensor
-from settings import log
 
 
 
@@ -141,10 +138,21 @@ client = mqtt.Client()
 client.connect(BROKER, PORT, 60)
 
 
+
+
+def get_sensors_from_api_by_device_uuid(device_uuid, since):
+    url = "http://192.168.0.107:8080/api/sensors/"
+    # todo: add logs
+    response = requests.get(url, params={"deviceUid": device_uuid})
+    if response.status_code in (200, 201):
+        return response.json()
+
+    return None
+
 def send_data(data, sensor:AbstractSensor, timestamp):
     try:
         map_data = {
-            "type": "TEMPERATURE",
+            "type": "distance",
             "unit": "celsius",
             "value": data[0],
             "sensorId": sensor.api_id,

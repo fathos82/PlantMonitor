@@ -10,28 +10,42 @@ class SensorCapability(str, Enum):
     # Distância / Proximidade
     DISTANCE = "distance"
     PROXIMITY = "proximity"
-
     # Ambiente
     TEMPERATURE = "temperature"
     HUMIDITY = "humidity"
     PRESSURE = "pressure"
     LIGHT = "light"
-
     # Movimento / Posição
     ACCELERATION = "acceleration"
     GYROSCOPE = "gyroscope"
     ORIENTATION = "orientation"
-
     # Qualidade / Status
     SIGNAL_STRENGTH = "signal_strength"
     QUALITY = "quality"
     STATUS = "status"
-
     # Energia
     VOLTAGE = "voltage"
     CURRENT = "current"
     POWER = "power"
     BATTERY_LEVEL = "battery_level"
+
+from enum import Enum
+
+
+class SensorModel(str, Enum):
+    HC_SR04 = "HC-SR04"
+    BME280 = "BME280"
+    DHT11 = "DHT11"
+    DHT22 = "DHT22"
+    YL_69 = "YL-69"
+    BH1750 = "BH1750"
+    MPU6050 = "MPU6050"
+
+    # Outros / Genéricos
+    GENERIC_GPIO = "GENERIC_GPIO"
+
+
+
 
 
 class AbstractSensor(ABC):
