@@ -11,8 +11,8 @@ class HCSR04DistanceSensor(AbstractSensor):
 
     def __init__(self, **kwargs):
         print("[HC-SR04][INIT] Inicializando sensor com parâmetros:", kwargs)
-        self.trigger_pin = kwargs.get('trigger_pin', 23)
-        self.echo_pin = kwargs.get('echo_pin', 24)
+        self.trigger_pin = int(kwargs.get('trigger_pin', 23))
+        self.echo_pin = int(kwargs.get('echo_pin', 24))
         print(f"[HC-SR04][INIT] trigger_pin={self.trigger_pin}, echo_pin={self.echo_pin}")
 
     def setup(self) -> None:
