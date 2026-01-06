@@ -5,7 +5,7 @@ from sensors.sensor_factory import sensor_factory
 from sensors.sensors import AbstractSensor
 from utils import register_sensor_on_api, get_sensors_from_api_by_device_uuid
 from settings import log, LogLevel, LogContext
-from sensors import SensorModel
+from sensors.sensors import SensorModel
 
 class SensorPool:
     def __init__(self):
