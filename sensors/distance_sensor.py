@@ -22,7 +22,7 @@ class HCSR04DistanceSensor(AbstractSensor):
 
         GPIO.output(self.trigger_pin, GPIO.LOW)
         time.sleep(0.05)
-        self.is_ready = True
+        self.is_initialized = True
 
     def probe(self) -> bool:
         """
