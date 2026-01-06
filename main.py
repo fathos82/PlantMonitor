@@ -1,3 +1,6 @@
+# todo: problema com GPIO -> https://chatgpt.com/c/695d3a4d-83a0-8332-9ff5-78f43c82bce9
+# Alternativa: sudo apt install python3.13-dev
+
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -9,7 +12,9 @@ from settings import log
 from utils import register_or_get_device, generate_qrcode_to_set_account, send_data
 SLEEP_TIME = 0.5
 def run(sensor: AbstractSensor):
+    print("Incializando")
     while True:
+        print("rodando")
         value = sensor.read()
         print(sensor.to_dict())
 
