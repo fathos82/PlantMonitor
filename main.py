@@ -16,6 +16,7 @@ def run(sensor: AbstractSensor):
     while True:
         print("rodando")
         value = sensor.read()
+        print("oi")
         print(sensor.to_dict())
 
         dt = datetime.now(timezone.utc)
