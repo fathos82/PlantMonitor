@@ -28,10 +28,10 @@ def run_device_thread(stop_event: threading.Event):
     while True:
 
         random_float= random.random()
-        if random_float < 0.1:
+        if random_float < 0.01:
             stop_event.set()
             print("PARANDO...")
-
+        time.sleep(0.5)
 
 
 
