@@ -41,6 +41,7 @@ class SensorPool:
         print("RESULTADOS: ", result)
         for sensor in result:
             try:
+                print("SENSOR: ", sensor)
                 sensors.append(sensor_factory.create(sensor))
             except Exception as e:
                 #todo: logs

@@ -31,7 +31,12 @@ class SensorCapability(str, Enum):
 
 from enum import Enum
 
+from enum import Enum
+from typing import Type, TypeVar
 
+
+
+E = TypeVar("E", bound=Enum)
 class SensorModel(str, Enum):
     HC_SR04 = "HC-SR04"
     BME280 = "BME280"
@@ -40,10 +45,20 @@ class SensorModel(str, Enum):
     YL_69 = "YL-69"
     BH1750 = "BH1750"
     MPU6050 = "MPU6050"
-
-    # Outros / Genéricos
     GENERIC_GPIO = "GENERIC_GPIO"
 
+    @classmethod
+    def _missing_(cls: Type[E], value: object) -> E:
+        if value is None:
+            raise ValueError("None is not a valid SensorModel")
+
+        normalized = str(value).strip().upper().replace("-", "_")
+
+        for member in cls:
+            if member.name == normalized:
+                return member
+
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
 
 
