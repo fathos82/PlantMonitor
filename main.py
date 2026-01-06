@@ -16,8 +16,8 @@ def run(sensor: AbstractSensor):
     while True:
         print("rodando")
         value = sensor.read()
-        print("oi")
-        print(sensor.to_dict())
+        # print("oi")
+        # print(sensor.to_dict())
 
         dt = datetime.now(timezone.utc)
         timestamp = dt.isoformat().replace("+00:00", "Z")
