@@ -38,6 +38,7 @@ class SensorPool:
         # todo: add logs
         sensors = []
         result = get_sensors_from_api_by_device_uuid(device_uuid, since)
+        print("RESULTADOS: ", result)
         for sensor in result:
             try:
                 sensors.append(sensor_factory.create(sensor))
