@@ -41,6 +41,7 @@ def main():
     while True:
         with ThreadPoolExecutor(max_workers=len(sensor_pool.sensors)) as executor:
             executor.map(run, sensor_pool.sensors)
+        print("CRIANDO")
 
 
 if __name__ == '__main__':
