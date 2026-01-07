@@ -35,6 +35,7 @@ class SensorRunner(threading.Thread):
                 continue
 
             try:
+                print("OIIIIIIIII")
                 value = self.sensor.read()
                 send_data(value, self.sensor)
                 print(f"[RUNNER] leitura: {value}")
