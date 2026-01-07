@@ -9,6 +9,10 @@ from sensors.sensors import SensorModel
 
 class SensorPool:
     def __init__(self):
+        self.sensors_to_remove = []
+        self.sensors_to_add = []
+        self.sensor_to_update = []
+
         self.sensors_map: Dict[int, AbstractSensor] = {}
         self.register_sensors_to_factory()
     def register_sensors_to_factory(self):
@@ -54,35 +58,26 @@ class SensorPool:
         # todo: add locks
 
         log("Descoberta de sensores iniciada", context=LogContext.SENSOR)
-        possible_new_sensors = []
-        possible_new_sensors.extend(self.__automatic_scan_sensors())
-
         registered_sensors = []
         registered_sensors.extend(self.get_sensors_from_api(device_uuid))
-
-
-        for sensor in possible_new_sensors:
-            sensor_name = sensor.__class__.__name__
-            try:
-                json = register_sensor_on_api(
-                    sensor_name=sensor_name,
-                    device_uuid=device_uuid,
-                    capabilities=sensor.capabilities
-                )
-                # todo: cuidado, rever isso, pq mexer aqui ira mexer em um looping em execução
-                sensor.api_id = json['id']
-                self.sensors_map[sensor.api_id] = sensor
-
-
-            except Exception as e:
-                    # todo: o que deve acontecer caso não consiga registrar sensor
-                            log(f"Erro ao registrar sensor ({sensor_name}): {e}", level=LogLevel.ERROR, context=LogContext.API)
-
         # todo: add logs
+        keys = self.sensors_map.keys()
         for sensor in registered_sensors:
             if sensor.probe():
-                self.sensors_map[sensor.api_id] = sensor
+                if sensor.id in keys:
+                    self.sensor_to_update.append(sensor)
+                else:
+                    self.sensor_to_update.append(sensor)
+
+
 
         if not self.sensors_map:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
+    def synchronize(self):
+        for sensor in self.sensors_map.values():
+            if sensor in self.sensors_to_remove:
+                self.sensors_map.pop(sensor.api_id)
+            elif sensor in self.sensors_to_add:
+                self.sensors_map[sensor.api_id] = sensor
+sensor_pool = SensorPool()
