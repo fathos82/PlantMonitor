@@ -5,6 +5,7 @@ from sensors.sensors import AbstractSensor
 
 # todo: change logs
 class HCSR04DistanceSensor(AbstractSensor):
+
     sensor_name = "Ultrasonic Distance Sensor"
     model = "HC-SR04"
     capabilities = ['distance']
@@ -108,3 +109,5 @@ class HCSR04DistanceSensor(AbstractSensor):
         local_id = f"distance:{self.trigger_pin}:{self.echo_pin}"
         print(f"[HC-SR04][LOCAL_ID] local_id={local_id}")
         return local_id
+    def shutdown(self) -> None:
+        raise NotImplemented
