@@ -12,16 +12,19 @@ from utils import register_or_get_device, generate_qrcode_to_set_account, send_d
 
 
 def device_watcher(device_uuid):
-    sensor_pool.discover(device_uuid)
-    print("PARA ADICIOANR: ", sensor_pool.sensors_to_add)
-    for sensor in sensor_pool.sensors_to_remove:
-        thread_supervisor.remove_sensor(sensor)
-    for sensor in sensor_pool.sensors_to_add:
-        thread_supervisor.add_sensor(sensor)
-    for sensor in sensor_pool.sensor_to_update:
-        thread_supervisor.reload_sensor(sensor)
-    sensor_pool.synchronize()
-    time.sleep(WATCHER_SLEEP_TIME)
+    # todo: criar variável de controlle
+    while True:
+        sensor_pool.discover(device_uuid)
+        print("PARA ADICIOANR: ", sensor_pool.sensors_to_add)
+        for sensor in sensor_pool.sensors_to_remove:
+            thread_supervisor.remove_sensor(sensor)
+        for sensor in sensor_pool.sensors_to_add:
+            thread_supervisor.add_sensor(sensor)
+        for sensor in sensor_pool.sensor_to_update:
+            thread_supervisor.reload_sensor(sensor)
+        sensor_pool.synchronize()
+        time.sleep(WATCHER_SLEEP_TIME)
+
 
 
 def main():
