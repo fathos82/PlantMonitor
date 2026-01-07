@@ -64,9 +64,10 @@ class SensorPool:
         for sensor in registered_sensors:
             if sensor.probe():
                 if sensor.api_id in keys:
-                    self.sensors_to_add.append(sensor)
-                else:
                     self.sensor_to_update.append(sensor)
+                else:
+                    self.sensors_to_add.append(sensor)
+
 
 
 
@@ -77,6 +78,6 @@ class SensorPool:
         for sensor in self.sensors_map.values():
             if sensor in self.sensors_to_remove:
                 self.sensors_map.pop(sensor.api_id)
-            elif sensor not in self.sensors_to_add:
+            elif sensor in self.sensors_to_add:
                 self.sensors_map[sensor.api_id] = sensor
 sensor_pool = SensorPool()
