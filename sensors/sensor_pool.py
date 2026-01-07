@@ -76,10 +76,12 @@ class SensorPool:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
     def synchronize(self):
+        print(self.sensors_to_add)
         for sensor in self.sensors_map.values():
             if sensor in self.sensors_to_remove:
                 self.sensors_map.pop(sensor.api_id)
             elif sensor in self.sensors_to_add:
+                print("PARA ADICIONARRRR")
                 self.sensors_map[sensor.api_id] = sensor
         self.sensors_to_remove = []
         self.sensors_to_add = []
