@@ -146,6 +146,7 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
     # todo: add logs
     response = requests.get(url, params={"deviceUid": device_uuid})
     print(response)
+    print(response.json())
     if response.status_code in (200, 201):
         return response.json()
 
