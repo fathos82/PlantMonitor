@@ -80,4 +80,7 @@ class SensorPool:
                 self.sensors_map.pop(sensor.api_id)
             elif sensor in self.sensors_to_add:
                 self.sensors_map[sensor.api_id] = sensor
+        self.sensors_to_remove = []
+        self.sensors_to_add = []
+        self.sensor_to_update = []
 sensor_pool = SensorPool()
