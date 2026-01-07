@@ -76,6 +76,7 @@ class SensorPool:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
     def synchronize(self):
+        print("Synchronizador de sensores")
         print(self.sensors_to_add)
         for sensor in self.sensors_map.values():
             if sensor in self.sensors_to_remove:
