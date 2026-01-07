@@ -13,6 +13,7 @@ from utils import register_or_get_device, generate_qrcode_to_set_account, send_d
 
 def device_watcher(device_uuid):
     sensor_pool.discover(device_uuid)
+    print("PARA ADICIOANR: ", sensor_pool.sensors_to_add)
     for sensor in sensor_pool.sensors_to_remove:
         thread_supervisor.remove_sensor(sensor)
     for sensor in sensor_pool.sensors_to_add:

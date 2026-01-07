@@ -49,7 +49,6 @@ class SensorPool:
             except Exception as e:
                 #todo: logs
                 pass
-        print("SENSORES: ", sensors)
         return sensors
     @property
     def sensors(self):
