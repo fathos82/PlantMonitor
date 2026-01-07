@@ -61,6 +61,7 @@ class SensorPool:
         registered_sensors.extend(self.get_sensors_from_api(device_uuid))
         # todo: add logs
         keys = self.sensors_map.keys()
+        print("KEYS: ", keys)
         for sensor in registered_sensors:
             if sensor.probe():
                 if sensor.api_id in keys:
