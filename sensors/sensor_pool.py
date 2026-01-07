@@ -65,7 +65,7 @@ class SensorPool:
         for sensor in registered_sensors:
             if sensor.probe():
                 if sensor.api_id in keys:
-                    self.sensor_to_update.append(sensor)
+                    self.sensors_to_add.append(sensor)
                 else:
                     self.sensor_to_update.append(sensor)
 
