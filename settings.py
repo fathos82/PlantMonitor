@@ -5,6 +5,12 @@ from enum import Enum
 
 
 
+SENSOR_SLEEP_TIME = 0.5
+WATCHER_SLEEP_TIME = 5
+
+
+
+
 class LogLevel(Enum):
     DEBUG = "debug"
     INFO = "info"
