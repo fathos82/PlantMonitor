@@ -3,6 +3,7 @@ import os
 import socket
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 import paho.mqtt.client as mqtt
 import segno
@@ -149,8 +150,10 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
 
     return None
 
-def send_data(data, sensor:AbstractSensor, timestamp):
+def send_data(data, sensor:AbstractSensor):
     try:
+        dt = datetime.now(timezone.utc)
+        timestamp = dt.isoformat().replace("+00:00", "Z")
         map_data = {
             "type": "distance",
             "unit": "celsius",
