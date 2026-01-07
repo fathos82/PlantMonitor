@@ -22,6 +22,7 @@ class SensorFactory:
         sensor_cls = self._REGISTRY[sensor_type]
         print("CLASSE: ", sensor_cls)
         sensor = sensor_cls(**sensor_data.get("parameters", {}))
+        print(sensor)
         sensor.api_id = sensor_data.get("id")
         return sensor
 
