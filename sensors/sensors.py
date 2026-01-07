@@ -101,6 +101,9 @@ class AbstractSensor(ABC):
         """Verifica se o sensor está saudável"""
         return True
 
+    @abstractmethod
+    def shutdown(self) -> None:
+        raise NotImplementedError
 
     # ===== Identificador físico determinístico =====
     @property
