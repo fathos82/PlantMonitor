@@ -80,7 +80,7 @@ class SensorPool:
             else:
                 self.sensors_to_update.append(sensor_id)
                 print("SETANDO PARAMETROS")
-                self.sensors_map[sensor_id].set_params(**sensor_data["params"])
+                self.sensors_map[sensor_id].set_params(**sensor_data["parameters"])
 
         except KeyError as e:
             log(f"Dados inválidos do sensor (campo ausente): {e} | data={sensor_data}",level=LogLevel.ERROR,context=LogContext.SENSOR)
