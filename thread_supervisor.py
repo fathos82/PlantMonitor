@@ -7,6 +7,8 @@ class ThreadSupervisor:
         self.runners = {}
 
     def add_sensor(self, sensor:AbstractSensor):
+        print("Adding sensor {}".format(sensor.sensor_name))
+        print("Sensor ID: {}".format(sensor.api_id))
         runner = SensorRunner(sensor)
         self.runners[sensor.local_id] = runner
         runner.start()
@@ -20,6 +22,7 @@ class ThreadSupervisor:
     def reload_sensor(self, sensor):
 
         runner = self.runners.get(sensor.api_id)
+        print("RUNNER COLETADO: ", runner)
         if runner:
             runner.commands.put(Command.RELOAD)
 
