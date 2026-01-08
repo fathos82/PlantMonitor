@@ -151,11 +151,19 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
 
     return None
 
+import requests
+
 def send_to_api_error(message, sensor_id):
     url = f"http://192.168.0.107:8080/api/sensors/{sensor_id}/errors/"
-    data = {"message": message}
-    requests.post(url, json=data, timeout=5)
+    data = {"message": str(message)}
 
+    response = requests.post(url, json=data, timeout=5)
+
+    if response.ok:
+        log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO, context=LogContext.API)
+    else:
+        log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code}, body={response.text})",
+            level=LogLevel.ERROR, context=LogContext.API)
 
 
 def send_data(data, sensor:AbstractSensor):
