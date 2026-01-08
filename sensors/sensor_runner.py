@@ -24,9 +24,8 @@ class SensorRunner(threading.Thread):
         self.running = False
         self._stop_requested = False
 
-    def run(self):
-        print(f"[RUNNER] iniciado: {self.sensor.local_id}")
 
+    def run(self):
         while not self._stop_requested:
             self._handle_commands()
 
@@ -73,7 +72,6 @@ class SensorRunner(threading.Thread):
                 print(f"[RUNNER][WARN] comando desconhecido: {command}")
 
     def _reload_sensor(self):
-        print(f"[RUNNER] recarregando sensor {self.sensor.local_id}")
         try:
             self.sensor.is_initialized = False
             self.sensor.setup()

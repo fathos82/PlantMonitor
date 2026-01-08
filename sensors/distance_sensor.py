@@ -3,18 +3,21 @@ from typing import Dict
 import RPi.GPIO as GPIO
 from sensors.sensors import AbstractSensor
 
+
 # todo: change logs
 class HCSR04DistanceSensor(AbstractSensor):
-
     sensor_name = "Ultrasonic Distance Sensor"
     model = "HC-SR04"
     capabilities = ['distance']
 
     def __init__(self, **kwargs):
         print("[HC-SR04][INIT] Inicializando sensor com parâmetros:", kwargs)
+        self.set_params(**kwargs)
+        print(f"[HC-SR04][INIT] trigger_pin={self.trigger_pin}, echo_pin={self.echo_pin}")
+
+    def set_params(self, **kwargs) -> None:
         self.trigger_pin = int(kwargs.get('trigger_pin', 23))
         self.echo_pin = int(kwargs.get('echo_pin', 24))
-        print(f"[HC-SR04][INIT] trigger_pin={self.trigger_pin}, echo_pin={self.echo_pin}")
 
     def setup(self) -> None:
         print("[HC-SR04][SETUP] Iniciando setup do sensor")
@@ -109,5 +112,6 @@ class HCSR04DistanceSensor(AbstractSensor):
         local_id = f"distance:{self.trigger_pin}:{self.echo_pin}"
         print(f"[HC-SR04][LOCAL_ID] local_id={local_id}")
         return local_id
+
     def shutdown(self) -> None:
         raise NotImplemented

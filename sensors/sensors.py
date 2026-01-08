@@ -83,6 +83,9 @@ class AbstractSensor(ABC):
 
     # ===== Ciclo de vida =====
     @abstractmethod
+    def set_params(self, **kwargs) -> None:
+        pass
+    @abstractmethod
     def probe(self) -> bool:
         """Detecta se o sensor existe fisicamente"""
         raise NotImplementedError
@@ -106,16 +109,7 @@ class AbstractSensor(ABC):
         raise NotImplementedError
 
     # ===== Identificador físico determinístico =====
-    @property
-    @abstractmethod
-    def local_id(self) -> str:
-        """
-        Ex:
-          I2C:1:0x76
-          GPIO:17:YL-69
-          1WIRE:28-xxxx
-        """
-        raise NotImplementedError
+
     @property
     def capabilities_values(self):
         return [cap.name for cap in self.capabilities]

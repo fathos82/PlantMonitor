@@ -17,7 +17,7 @@ class ThreadSupervisor:
         if runner:
             runner.commands.put(Command.STOP)
 
-    def reload_sensor(self, sensor):
+    def reload_sensor(self, sensor, params):
 
         runner = self.runners.get(sensor.api_id)
         if runner:
