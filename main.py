@@ -15,12 +15,12 @@ def device_watcher(device_uuid):
     # todo: criar variável de controlle
     while True:
         sensor_pool.discover(device_uuid)
-        for sensor in sensor_pool.sensors_to_remove:
-            thread_supervisor.remove_sensor(sensor)
-        for sensor in sensor_pool.sensors_to_add:
-            thread_supervisor.add_sensor(sensor)
-        for sensor in sensor_pool.sensor_to_update:
-            thread_supervisor.reload_sensor(sensor)
+        for sensor_id in sensor_pool.sensors_to_remove:
+            thread_supervisor.remove_sensor(sensor_id)
+        for sensor_id in sensor_pool.sensors_to_add:
+            thread_supervisor.add_sensor(sensor_pool.sensors_map[sensor_id])
+        for sensor_id in sensor_pool.sensor_to_update:
+            thread_supervisor.reload_sensor(sensor_id)
         sensor_pool.clear()
         time.sleep(WATCHER_SLEEP_TIME)
 

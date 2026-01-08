@@ -39,49 +39,40 @@ class SensorPool:
 
         log(f"Varredura concluída ({len(self.sensors_map)} sensor(es))", context=LogContext.SENSOR)
         return sensors
-    def get_sensors_from_api(self, device_uuid, since=None):
-        # todo: add logs
-        sensors = []
-        result = get_sensors_from_api_by_device_uuid(device_uuid, since)
-        for sensor in result:
-            try:
-                sensors.append(sensor_factory.create(sensor))
-            except Exception as e:
-                #todo: logs
-                pass
-        return sensors
-    @property
-    def sensors(self):
-        return self.sensors_map.values()
+
     def discover(self, device_uuid):
         # todo: add locks
 
         log("Descoberta de sensores iniciada", context=LogContext.SENSOR)
-        registered_sensors = []
-        registered_sensors.extend(self.get_sensors_from_api(device_uuid))
+        sensors_from_api_data = get_sensors_from_api_by_device_uuid(device_uuid, None)
+
         # todo: add logs
         keys = self.sensors_map.keys()
-        for sensor in registered_sensors:
-            if sensor.probe():
-                if sensor.api_id in keys:
-                    self.sensor_to_update.append(sensor)
-                else:
-                    self.sensors_to_add.append(sensor)
-                    self.sensors_map[sensor.api_id] = sensor
-
-
-
-
+        for sensor_data in sensors_from_api_data:
+            sensor_id = sensor_data['id']
+            if sensor_id not in keys:
+                sensor_instance = sensor_factory.create(sensor_id, sensor_data)
+                if sensor_instance.probe():
+                    self.sensors_map[sensor_id] = sensor_instance
+                    self.sensors_to_add.append(sensor_id)
+            else:
+                self.sensor_to_update.append(sensor_id)
         if not self.sensors_map:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
+
+
+
     def clear(self):
-        print("PARA ATUALIZAR: ", self.sensor_to_update)
         for s in self.sensors_to_remove.copy():
             if s in self.sensors_map:
                 self.sensors_map.pop(s)
-
         self.sensors_to_remove = []
         self.sensors_to_add = []
         self.sensor_to_update = []
+
+    @property
+    def sensors(self):
+        return self.sensors_map.values()
+
 sensor_pool = SensorPool()
