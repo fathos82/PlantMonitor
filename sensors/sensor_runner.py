@@ -28,7 +28,6 @@ class SensorRunner(threading.Thread):
         self.running = False
         self._stop_requested = False
 
-
     def run(self):
         while not self._stop_requested:
             self._handle_commands()
@@ -37,23 +36,27 @@ class SensorRunner(threading.Thread):
                 time.sleep(SENSOR_SLEEP_TIME)
                 continue
 
+            had_error = False
+
             try:
                 value = self.sensor.read()
                 send_data(value, self.sensor)
                 print(f"[RUNNER] leitura: {value}")
+
             except SensorError as e:
+                had_error = True
                 send_to_api_error(e.message, e.sensor_id)
                 print(f"[RUNNER][ERRO] {e}")
-            except Exception as e:
-                send_to_api_error("Error inesperado ao tentar realizar leitura no sensor.", sensor_id=self.sensor.api_id)
-            finally:
-                while not self.sensor.probe():
-                    self._handle_commands()
-                    self._reload_sensor()
-                    time.sleep(SENSOR_ERROR_SLEEP_TIME)
 
+            except Exception:
+                had_error = True
+                send_to_api_error(
+                    "Erro inesperado ao tentar realizar leitura no sensor.",
+                    sensor_id=self.sensor.api_id
+                )
 
-
+            if had_error:
+                self.handle_error()
 
             time.sleep(SENSOR_SLEEP_TIME)
 
@@ -89,4 +92,11 @@ class SensorRunner(threading.Thread):
             self.sensor.setup()
         except Exception as e:
             print(f"[RUNNER][ERRO][RELOAD] {e}")
+
+    def handle_error(self):
+        if not self.sensor.probe():
+            self._reload_sensor()
+            time.sleep(SENSOR_ERROR_SLEEP_TIME)
+
+
 
