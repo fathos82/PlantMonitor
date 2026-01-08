@@ -15,7 +15,7 @@ def device_watcher(device_uuid):
     # todo: criar variável de controlle
     while True:
         sensor_pool.discover(device_uuid)
-        print("PARA ADICIOANR: ", sensor_pool.sensors_to_add)
+        print("PARA ATUALIZAR: ", sensor_pool.sensor_to_update)
         for sensor in sensor_pool.sensors_to_remove:
             thread_supervisor.remove_sensor(sensor)
         for sensor in sensor_pool.sensors_to_add:
