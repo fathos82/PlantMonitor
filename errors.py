@@ -5,7 +5,8 @@ class SensorError(Exception):
         self.message = message
         self.sensor_id = sensor_id
         super().__init__(message)  # ⚠️ apenas a mensagem
-
+    def __str__(self):
+        return self.message
 
 class SensorSetupError(SensorError):
     pass
