@@ -79,6 +79,7 @@ class SensorPool:
                     log(f"Sensor {sensor_id} não respondeu ao probe",level=LogLevel.WARNING, context=LogContext.SENSOR)
             else:
                 self.sensors_to_update.append(sensor_id)
+                self.sensors_map[sensor_id].set_params(**sensor_data["params"])
 
         except KeyError as e:
             log(f"Dados inválidos do sensor (campo ausente): {e} | data={sensor_data}",level=LogLevel.ERROR,context=LogContext.SENSOR)
