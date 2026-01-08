@@ -1,10 +1,14 @@
 import time
 from typing import Dict
 import RPi.GPIO as GPIO
+
+from errors import SensorSetupError, SensorTimeoutError
 from sensors.sensors import AbstractSensor
 
 
 # todo: change logs
+
+
 class HCSR04DistanceSensor(AbstractSensor):
     sensor_name = "Ultrasonic Distance Sensor"
     model = "HC-SR04"
@@ -20,22 +24,29 @@ class HCSR04DistanceSensor(AbstractSensor):
         self.echo_pin = int(kwargs.get('echo_pin', 24))
 
     def setup(self) -> None:
-        print("[HC-SR04][SETUP] Iniciando setup do sensor")
+        try:
+            print("[HC-SR04][SETUP] Iniciando setup do sensor")
 
-        GPIO.setmode(GPIO.BCM)
-        print("[HC-SR04][SETUP] GPIO mode setado para BCM")
+            GPIO.setmode(GPIO.BCM)
+            print("[HC-SR04][SETUP] GPIO mode setado para BCM")
 
-        GPIO.setup(self.trigger_pin, GPIO.OUT)
-        GPIO.setup(self.echo_pin, GPIO.IN)
-        print("[HC-SR04][SETUP] GPIO pins configurados")
+            GPIO.setup(self.trigger_pin, GPIO.OUT)
+            GPIO.setup(self.echo_pin, GPIO.IN)
+            print("[HC-SR04][SETUP] GPIO pins configurados")
 
-        GPIO.output(self.trigger_pin, GPIO.LOW)
-        print("[HC-SR04][SETUP] Trigger setado para LOW")
+            GPIO.output(self.trigger_pin, GPIO.LOW)
+            print("[HC-SR04][SETUP] Trigger setado para LOW")
 
-        time.sleep(0.05)
+            time.sleep(0.05)
 
-        self.is_initialized = True
-        print("[HC-SR04][SETUP] Sensor inicializado com sucesso")
+            self.is_initialized = True
+            print("[HC-SR04][SETUP] Sensor inicializado com sucesso")
+        except PermissionError as e:
+            raise SensorSetupError("Sensor indisponível por falta de permissão.") from e
+        except RuntimeError as e:
+            raise SensorSetupError("Ambiente incompatível com o sensor.") from e
+        except Exception as e:
+            raise SensorSetupError("Falha inesperada na inicialização do sensor.") from e
 
     def probe(self) -> bool:
         """
@@ -85,7 +96,8 @@ class HCSR04DistanceSensor(AbstractSensor):
         while GPIO.input(self.echo_pin) == 0:
             if time.time() > timeout_start:
                 print("[HC-SR04][READ][ERRO] Timeout aguardando início do ECHO")
-                raise RuntimeError("Timeout aguardando ECHO (start)")
+                # todo melhorar essa mensagem de timeout
+                raise SensorTimeoutError("Timeout aguardando ECHO (start)")
 
         start = time.time()
         print("[HC-SR04][READ] ECHO iniciado")
@@ -93,7 +105,7 @@ class HCSR04DistanceSensor(AbstractSensor):
         while GPIO.input(self.echo_pin) == 1:
             if time.time() > timeout_end:
                 print("[HC-SR04][READ][ERRO] Timeout aguardando fim do ECHO")
-                raise RuntimeError("Timeout aguardando ECHO (end)")
+                raise TimeoutError("Timeout aguardando ECHO (end)")
         end = time.time()
         print("[HC-SR04][READ] ECHO finalizado")
 

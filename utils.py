@@ -151,6 +151,13 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
 
     return None
 
+def send_to_api_error(message, sensor_id):
+    url = f"http://192.168.0.107:8080/api/sensors/{sensor_id}/errors/"
+    data = {"message": message}
+    requests.post(url, json=data, timeout=5)
+
+
+
 def send_data(data, sensor:AbstractSensor):
     try:
         dt = datetime.now(timezone.utc)
