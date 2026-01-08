@@ -42,7 +42,7 @@ class SensorRunner(threading.Thread):
                 send_data(value, self.sensor)
                 print(f"[RUNNER] leitura: {value}")
             except SensorError as e:
-                send_to_api_error(str(e), e.sensor_id)
+                send_to_api_error(e.message, e.sensor_id)
                 print(f"[RUNNER][ERRO] {e}")
             except Exception as e:
                 send_to_api_error("Error inesperado ao tentar realizar leitura no sensor.", sensor_id=self.sensor.api_id)
