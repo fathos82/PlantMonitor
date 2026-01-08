@@ -5,9 +5,9 @@ from enum import Enum
 
 
 
-SENSOR_SLEEP_TIME = 0.5
+SENSOR_SLEEP_TIME = 0.2
 WATCHER_SLEEP_TIME = 5
-
+SENSOR_ERROR_SLEEP_TIME = 1
 
 
 
