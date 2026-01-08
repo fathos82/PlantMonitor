@@ -51,7 +51,7 @@ class SensorPool:
         for sensor_data in sensors_from_api_data:
             sensor_id = sensor_data['id']
             if sensor_id not in keys:
-                sensor_instance = sensor_factory.create(sensor_id, sensor_data)
+                sensor_instance = sensor_factory.create(sensor_data)
                 if sensor_instance.probe():
                     self.sensors_map[sensor_id] = sensor_instance
                     self.sensors_to_add.append(sensor_id)

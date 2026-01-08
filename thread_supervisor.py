@@ -12,14 +12,13 @@ class ThreadSupervisor:
         runner.start()
         runner.commands.put(Command.START)
 
-    def remove_sensor(self, sensor):
-        runner = self.runners.pop(sensor.api_id, None)
+    def remove_sensor(self, sensor_id):
+        runner = self.runners.pop(sensor_id, None)
         if runner:
             runner.commands.put(Command.STOP)
 
-    def reload_sensor(self, sensor):
-
-        runner = self.runners.get(sensor.api_id)
+    def reload_sensor(self, sensor_id):
+        runner = self.runners.get(sensor_id)
         if runner:
             runner.commands.put(Command.RELOAD)
 
