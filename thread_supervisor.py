@@ -18,6 +18,7 @@ class ThreadSupervisor:
 
     def reload_sensor(self, local_id):
         runner = self.runners.get(local_id)
+        print("RUNNER COLETADO: ", runner)
         if runner:
             runner.commands.put(Command.RELOAD)
 
