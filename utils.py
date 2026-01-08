@@ -162,7 +162,7 @@ def send_to_api_error(message, sensor_id):
     if response.ok:
         log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO, context=LogContext.API)
     else:
-        log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code}, body={response.text})",
+        log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
             level=LogLevel.ERROR, context=LogContext.API)
 
 

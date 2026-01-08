@@ -1,10 +1,11 @@
 
 
-
 class SensorError(Exception):
-    def __init__(self,*args, **kwargs):
-        super().__init__( *args, *kwargs)
-        self.sensor_id = kwargs.get('sensor_id')
+    def __init__(self, message: str, sensor_id: int | None = None):
+        self.message = message
+        self.sensor_id = sensor_id
+        super().__init__(message)  # ⚠️ apenas a mensagem
+
 
 class SensorSetupError(SensorError):
     pass
