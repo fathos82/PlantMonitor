@@ -21,13 +21,10 @@ class HCSR04DistanceSensor(AbstractSensor):
 
     def set_params(self, **kwargs) -> None:
         self.trigger_pin = int(kwargs.get('trigger_pin', 23))
-        print("TRIGER SETADO: ", self.trigger_pin)
         self.echo_pin = int(kwargs.get('echo_pin', 24))
 
     def setup(self) -> None:
         try:
-            print("TRIGGER PIN: ", self.trigger_pin)
-            print("ECHO PIN: ", self.echo_pin)
             print("[HC-SR04][SETUP] Iniciando setup do sensor")
 
             GPIO.setmode(GPIO.BCM)
@@ -45,11 +42,11 @@ class HCSR04DistanceSensor(AbstractSensor):
             self.is_initialized = True
             print("[HC-SR04][SETUP] Sensor inicializado com sucesso")
         except PermissionError as e:
-            raise SensorSetupError("Sensor indisponível por falta de permissão.") from e
+            raise SensorSetupError("Sensor indisponível por falta de permissão.", sensor_id= self.api_id) from e
         except RuntimeError as e:
-            raise SensorSetupError("Ambiente incompatível com o sensor.") from e
+            raise SensorSetupError("Ambiente incompatível com o sensor.", sensor_id= self.api_id) from e
         except Exception as e:
-            raise SensorSetupError("Falha inesperada na inicialização do sensor.") from e
+            raise SensorSetupError("Falha inesperada na inicialização do sensor.", sensor_id= self.api_id) from e
 
     def probe(self) -> bool:
         """

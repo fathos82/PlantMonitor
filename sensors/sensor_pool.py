@@ -80,6 +80,7 @@ class SensorPool:
             else:
                 self.sensors_to_update.append(sensor_id)
                 print("SETANDO PARAMETROS")
+                print(sensor_data["parameters"])
                 self.sensors_map[sensor_id].set_params(**sensor_data["parameters"])
 
         except KeyError as e:
