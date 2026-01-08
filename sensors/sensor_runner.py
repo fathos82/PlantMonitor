@@ -47,8 +47,11 @@ class SensorRunner(threading.Thread):
             except Exception as e:
                 send_to_api_error("Error inesperado ao tentar realizar leitura no sensor.", sensor_id=self.sensor.api_id)
             finally:
-                time.sleep(SENSOR_ERROR_SLEEP_TIME)
-                self._reload_sensor()
+                while not self.sensor.probe():
+                    self._handle_commands()
+                    self._reload_sensor()
+                    time.sleep(SENSOR_ERROR_SLEEP_TIME)
+
 
 
 
