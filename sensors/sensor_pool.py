@@ -9,7 +9,7 @@ from sensors.sensors import SensorModel
 
 class SensorPool:
     def __init__(self):
-        self.sensors_to_update = None
+        self.sensors_to_update = []
         self.sensors_to_remove = []
         self.sensors_to_add = []
 
@@ -59,9 +59,11 @@ class SensorPool:
         sensors_from_api_data = self._fetch_sensors_from_api(device_uuid)
 
         # todo: add logs
-        keys = self.sensors_map.keys()
         for sensor_data in sensors_from_api_data:
             self._process_sensor_data(sensor_data)
+
+
+
 
     def _process_sensor_data(self, sensor_data):
         try:
