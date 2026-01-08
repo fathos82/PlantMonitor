@@ -97,7 +97,7 @@ class HCSR04DistanceSensor(AbstractSensor):
             if time.time() > timeout_start:
                 print("[HC-SR04][READ][ERRO] Timeout aguardando início do ECHO")
                 # todo melhorar essa mensagem de timeout
-                raise SensorTimeoutError("Timeout aguardando ECHO (start)")
+                raise SensorTimeoutError("Timeout aguardando ECHO (start)", sensor_id=self.api_id)
 
         start = time.time()
         print("[HC-SR04][READ] ECHO iniciado")
@@ -105,7 +105,7 @@ class HCSR04DistanceSensor(AbstractSensor):
         while GPIO.input(self.echo_pin) == 1:
             if time.time() > timeout_end:
                 print("[HC-SR04][READ][ERRO] Timeout aguardando fim do ECHO")
-                raise TimeoutError("Timeout aguardando ECHO (end)")
+                raise SensorTimeoutError("Timeout aguardando ECHO (end)", sensor_id=self.api_id)
         end = time.time()
         print("[HC-SR04][READ] ECHO finalizado")
 
