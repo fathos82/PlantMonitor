@@ -61,7 +61,6 @@ class SensorPool:
         registered_sensors.extend(self.get_sensors_from_api(device_uuid))
         # todo: add logs
         keys = self.sensors_map.keys()
-        print("KEYS: ", keys)
         for sensor in registered_sensors:
             if sensor.probe():
                 if sensor.api_id in keys:
@@ -77,6 +76,7 @@ class SensorPool:
             log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
             return
     def clear(self):
+        print("PARA ATUALIZAR: ", self.sensor_to_update)
         for s in self.sensors_to_remove.copy():
             if s in self.sensors_map:
                 self.sensors_map.pop(s)
