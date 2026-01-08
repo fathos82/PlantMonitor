@@ -21,10 +21,13 @@ class HCSR04DistanceSensor(AbstractSensor):
 
     def set_params(self, **kwargs) -> None:
         self.trigger_pin = int(kwargs.get('trigger_pin', 23))
+        print("TRIGER SETADO: ", self.trigger_pin)
         self.echo_pin = int(kwargs.get('echo_pin', 24))
 
     def setup(self) -> None:
         try:
+            print("TRIGGER PIN: ", self.trigger_pin)
+            print("ECHO PIN: ", self.echo_pin)
             print("[HC-SR04][SETUP] Iniciando setup do sensor")
 
             GPIO.setmode(GPIO.BCM)
