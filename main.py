@@ -21,6 +21,7 @@ def device_watcher(device_uuid):
         for sensor in sensor_pool.sensors_to_add:
             thread_supervisor.add_sensor(sensor)
         for sensor in sensor_pool.sensor_to_update:
+            print("ATUALIZANDO SENSOR: ", sensor)
             thread_supervisor.reload_sensor(sensor)
         sensor_pool.clear()
         time.sleep(WATCHER_SLEEP_TIME)
