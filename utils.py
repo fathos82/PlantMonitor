@@ -155,7 +155,8 @@ import requests
 
 def send_to_api_error(message, sensor_id):
     url = f"http://192.168.0.107:8080/api/sensors/{sensor_id}/errors/"
-    data = {"message": str(message)}
+    data = {"message": message}
+    print("DATA: ", data)
 
     response = requests.post(url, json=data, timeout=5)
 
