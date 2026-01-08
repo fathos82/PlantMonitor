@@ -42,10 +42,13 @@ class HCSR04DistanceSensor(AbstractSensor):
             self.is_initialized = True
             print("[HC-SR04][SETUP] Sensor inicializado com sucesso")
         except PermissionError as e:
+            print(e)
             raise SensorSetupError("Sensor indisponível por falta de permissão.", sensor_id= self.api_id) from e
         except RuntimeError as e:
+            print(e)
             raise SensorSetupError("Ambiente incompatível com o sensor.", sensor_id= self.api_id) from e
         except Exception as e:
+            print(e)
             raise SensorSetupError("Falha inesperada na inicialização do sensor.", sensor_id= self.api_id) from e
 
     def probe(self) -> bool:
