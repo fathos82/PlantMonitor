@@ -5,7 +5,7 @@ from enum import Enum, auto
 
 from errors import SensorError
 from sensors.sensors import AbstractSensor
-from settings import SENSOR_SLEEP_TIME
+from settings import SENSOR_SLEEP_TIME, SENSOR_ERROR_SLEEP_TIME
 from utils import send_data, send_to_api_error
 
 
@@ -34,7 +34,7 @@ class SensorRunner(threading.Thread):
             self._handle_commands()
 
             if not self.running:
-                time.sleep(0.1)
+                time.sleep(SENSOR_SLEEP_TIME)
                 continue
 
             try:
@@ -46,6 +46,12 @@ class SensorRunner(threading.Thread):
                 print(f"[RUNNER][ERRO] {e}")
             except Exception as e:
                 send_to_api_error("Error inesperado ao tentar realizar leitura no sensor.", sensor_id=self.sensor.api_id)
+            finally:
+                time.sleep(SENSOR_ERROR_SLEEP_TIME)
+                self._reload_sensor()
+
+
+
             time.sleep(SENSOR_SLEEP_TIME)
 
         print(f"[RUNNER] finalizado: {self.sensor.api_id}")
