@@ -1,4 +1,5 @@
 from sensors.sensors import SensorModel
+from settings import log
 
 
 class SensorFactory:
@@ -12,8 +13,7 @@ class SensorFactory:
         try:
             sensor_type = SensorModel(sensor_data["model"])
         except ValueError:
-
-            raise ValueError(f"Modelo inválido recebido da API: {sensor_data['model']}")
+            log(f"Modelo inválido recebido da API: {sensor_data['model']}", level="error")
 
         if sensor_type not in self._REGISTRY:
             raise ValueError(f"Sensor não suportado: {sensor_type}")
