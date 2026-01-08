@@ -1,5 +1,4 @@
 from sensors.sensors import SensorModel
-from settings import log
 
 
 class SensorFactory:
@@ -10,15 +9,14 @@ class SensorFactory:
         self._REGISTRY[sensor_type] = sensor_cls
 
     def create(self, sensor_data: dict):
-        #todo: talvez futuramente reportar esse error para api!
-        #todo: associar erro ao sensor solicitado pelo ID
         try:
             sensor_type = SensorModel(sensor_data["model"])
         except ValueError:
-            log(f"Modelo inválido recebido da API: {sensor_data['model']}", level="error")
+
+            raise ValueError(f"Modelo inválido recebido da API: {sensor_data['model']}")
 
         if sensor_type not in self._REGISTRY:
-            log(f"Sensor não suportado: {sensor_type}", level="error")
+            raise ValueError(f"Sensor não suportado: {sensor_type}")
         sensor_cls = self._REGISTRY[sensor_type]
         sensor = sensor_cls(**sensor_data.get("parameters", {}))
         sensor.api_id = sensor_data.get("id")

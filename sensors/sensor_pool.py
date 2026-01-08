@@ -9,9 +9,9 @@ from sensors.sensors import SensorModel
 
 class SensorPool:
     def __init__(self):
+        self.sensors_to_update = None
         self.sensors_to_remove = []
         self.sensors_to_add = []
-        self.sensor_to_update = []
 
         self.sensors_map: Dict[int, AbstractSensor] = {}
         self.register_sensors_to_factory()
@@ -40,28 +40,49 @@ class SensorPool:
         log(f"Varredura concluída ({len(self.sensors_map)} sensor(es))", context=LogContext.SENSOR)
         return sensors
 
+    def _fetch_sensors_from_api(self, device_uuid):
+        try:
+            return get_sensors_from_api_by_device_uuid(device_uuid, None)
+        except Exception as e:
+            log(
+                f"Erro ao buscar sensores da API: {e}",
+                level=LogLevel.ERROR,
+                context=LogContext.SENSOR
+            )
+            return []
+
+
     def discover(self, device_uuid):
         # todo: add locks
 
         log("Descoberta de sensores iniciada", context=LogContext.SENSOR)
-        sensors_from_api_data = get_sensors_from_api_by_device_uuid(device_uuid, None)
+        sensors_from_api_data = self._fetch_sensors_from_api(device_uuid)
 
         # todo: add logs
         keys = self.sensors_map.keys()
         for sensor_data in sensors_from_api_data:
+            self._process_sensor_data(sensor_data)
+
+    def _process_sensor_data(self, sensor_data):
+        try:
             sensor_id = sensor_data['id']
-            if sensor_id not in keys:
+
+            if sensor_id not in self.sensors_map:
                 sensor_instance = sensor_factory.create(sensor_data)
+
                 if sensor_instance.probe():
                     self.sensors_map[sensor_id] = sensor_instance
                     self.sensors_to_add.append(sensor_id)
+                else:
+                    log(f"Sensor {sensor_id} não respondeu ao probe",level=LogLevel.WARNING, context=LogContext.SENSOR)
             else:
-                self.sensor_to_update.append(sensor_id)
-        if not self.sensors_map:
-            log("Nenhum sensor encontrado", level=LogLevel.WARNING, context=LogContext.SENSOR)
-            return
+                self.sensors_to_update.append(sensor_id)
 
+        except KeyError as e:
+            log(f"Dados inválidos do sensor (campo ausente): {e} | data={sensor_data}",level=LogLevel.ERROR,context=LogContext.SENSOR)
 
+        except Exception as e:
+            log(f"Erro inesperado ao processar sensor {sensor_data}: {e}",level=LogLevel.ERROR,context=LogContext.SENSOR)
 
     def clear(self):
         for s in self.sensors_to_remove.copy():
@@ -69,7 +90,7 @@ class SensorPool:
                 self.sensors_map.pop(s)
         self.sensors_to_remove = []
         self.sensors_to_add = []
-        self.sensor_to_update = []
+        self.sensors_to_update = []
 
     @property
     def sensors(self):
