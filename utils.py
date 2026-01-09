@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import paho.mqtt.client as mqtt
 import segno
+from requests import RequestException
 
 from sensors.sensors import AbstractSensor
 
@@ -156,16 +157,25 @@ import requests
 def send_to_api_error(message, sensor_id):
     url = f"http://192.168.0.107:8080/api/sensors/{sensor_id}/errors/"
     data = {"message": message}
-    print("DATA: ", data)
 
-    response = requests.post(url, json=data, timeout=5)
+    try:
+        response = requests.post(url, json=data, timeout=5)
 
-    if response.ok:
-        log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO, context=LogContext.API)
-    else:
-        log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
-            level=LogLevel.ERROR, context=LogContext.API)
+        if response.ok:
+            log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO,
+                context=LogContext.API)
+        else:
+            log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
+                level=LogLevel.ERROR, context=LogContext.API)
 
+    except RequestException as e:
+        # engloba Timeout, ConnectionError, etc
+        log(
+            f"Falha ao enviar erro do sensor para API "
+            f"(sensor_id={sensor_id}): {e}",
+            level=LogLevel.WARNING,
+            context=LogContext.API
+        )
 
 def send_data(data, sensor:AbstractSensor):
     try:
