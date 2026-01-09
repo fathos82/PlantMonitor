@@ -4,7 +4,7 @@ import threading
 import time
 from logging import CRITICAL
 
-from sensors.sensor_pool import SensorPool, sensor_pool
+from sensors.sensor_pool import sensor_pool
 from settings import log, WATCHER_SLEEP_TIME
 from thread_supervisor import thread_supervisor
 from utils import register_or_get_device, generate_qrcode_to_set_account, send_data
