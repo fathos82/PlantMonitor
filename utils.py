@@ -190,6 +190,7 @@ def send_data(data, sensor:AbstractSensor):
             "measuredAt": str(timestamp)
         }
         payload = json.dumps(map_data)
+        print("VAMOS PUBLICAR", payload)
         client.publish(TOPIC, payload)
         print("sending data via mqtt:", payload)
     except Exception as e:
