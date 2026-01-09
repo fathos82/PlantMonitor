@@ -179,19 +179,16 @@ def send_to_api_error(message, sensor_id):
 
 def send_data(data, sensor:AbstractSensor):
     try:
-        print("OI ENVIANDO DADOsdb")
         dt = datetime.now(timezone.utc)
         timestamp = dt.isoformat().replace("+00:00", "Z")
         map_data = {
             "type": "distance",
             "unit": "celsius",
-            "value": data[0],
+            "value": data["distance_cm"],
             "sensorId": sensor.api_id,
             "measuredAt": str(timestamp)
         }
         payload = json.dumps(map_data)
-        print("VAMOS PUBLICAR", payload)
         client.publish(TOPIC, payload)
-        print("sending data via mqtt:", payload)
     except Exception as e:
         print(e)
