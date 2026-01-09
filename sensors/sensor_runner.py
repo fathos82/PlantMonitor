@@ -27,6 +27,7 @@ class SensorRunner(threading.Thread):
         self.commands = queue.Queue()
         self.running = False
         self._stop_requested = False
+        self.had_error = False
 
     def run(self):
         while not self._stop_requested:
@@ -35,8 +36,9 @@ class SensorRunner(threading.Thread):
             if not self.running:
                 time.sleep(SENSOR_SLEEP_TIME)
                 continue
-
-            had_error = False
+            if self.had_error:
+                self.handle_error()
+            self.had_error = False
 
             try:
                 value = self.sensor.read()
@@ -55,8 +57,7 @@ class SensorRunner(threading.Thread):
                     sensor_id=self.sensor.api_id
                 )
 
-            if had_error:
-                self.handle_error()
+
 
             time.sleep(SENSOR_SLEEP_TIME)
 
