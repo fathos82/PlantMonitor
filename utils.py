@@ -181,6 +181,8 @@ def send_data(data, sensor:AbstractSensor):
     try:
         dt = datetime.now(timezone.utc)
         timestamp = dt.isoformat().replace("+00:00", "Z")
+        print(data)
+        print(data["distance_cm"])
         map_data = {
             "type": "distance",
             "unit": "celsius",
