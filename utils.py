@@ -190,6 +190,7 @@ def send_data(data, sensor:AbstractSensor):
             "sensorId": sensor.api_id,
             "measuredAt": str(timestamp)
         }
+        print(map_data)
         payload = json.dumps(map_data)
         client.publish(TOPIC, payload)
     except Exception as e:
