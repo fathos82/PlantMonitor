@@ -16,7 +16,7 @@ from sensors.sensors import AbstractSensor
 def register_or_get_device():
     DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
     context = "DEVICE"
-    url = "http://192.168.0.107:8080/api/devices/"
+    url = "http://192.168.0.117:8080/api/devices/"
     # todo: data get para verificar se foi mesmo salvo!
     log("Verificando se o dispositivo já está registrado", context=context)
 
@@ -88,7 +88,7 @@ from settings import log, LogLevel, LogContext
 
 
 def register_sensor_on_api(sensor_name, capabilities, device_uuid):
-    url = "http://192.168.0.107:8080/api/sensors/"
+    url = "http://192.168.0.117:8080/api/sensors/"
 
     log(f"Registrando sensor {sensor_name}", context=LogContext.API)
 
@@ -132,7 +132,7 @@ def generate_qrcode_to_set_account(device_uuid):
         time.sleep(1)
 
 
-BROKER = "192.168.0.107"
+BROKER = "192.168.0.117"
 PORT = 1883
 TOPIC = "plant/data"
 
@@ -143,7 +143,7 @@ client.connect(BROKER, PORT, 60)
 
 
 def get_sensors_from_api_by_device_uuid(device_uuid, since):
-    url = "http://192.168.0.107:8080/api/sensors/"
+    url = "http://192.168.0.117:8080/api/sensors/"
     # todo: add logs
     response = requests.get(url, params={"deviceUid": device_uuid})
 
@@ -155,7 +155,7 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
 import requests
 
 def send_to_api_error(message, sensor_id):
-    url = f"http://192.168.0.107:8080/api/sensors/{sensor_id}/errors/"
+    url = f"http://192.168.0.117:8080/api/sensors/{sensor_id}/errors/"
     data = {"message": message}
 
     try:
