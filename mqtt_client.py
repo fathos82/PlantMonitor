@@ -35,12 +35,11 @@ def send_data(data, sensor:AbstractSensor):
         map_data = {
             "type": "distance",
             "unit": "celsius",
-            "value": data["distance_cm"],
             "sensorId": sensor.api_id,
         }
 
         print("OI")
-        payload = json.dumps(map_data)
+        payload = json.dumps(data)
         print(payload)
         logger.info("OIIII")
         logger.info("Sending data to MQTT: %s", str(payload))
