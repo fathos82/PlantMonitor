@@ -14,8 +14,6 @@ PORT = 1883
 
 def connect():
     get_logger("SYSTEM").log("Connecting to MQTT broker...")
-
-
     result = client.connect(MQTT_ADDRESS, PORT, 60)
 
     if result == 0:

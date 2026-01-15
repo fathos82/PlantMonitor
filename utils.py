@@ -3,97 +3,17 @@ import os
 import socket
 import time
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
-import paho.mqtt.client as mqtt
 import segno
-from requests import RequestException
 
 from logs import get_logger
-from sensors.sensors import AbstractSensor
-
-
-
-def register_or_get_device():
-    DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
-    context = "DEVICE"
-    url = "http://192.168.0.117:8080/api/devices/"
-    # todo: data get para verificar se foi mesmo salvo!
-    log("Verificando se o dispositivo já está registrado", context=context)
-
-    path = Path(DEVICE_UUID_FILE)
-
-    if path.exists():
-        device_uuid = path.read_text().strip()
-        log(
-            f"Dispositivo já registrado anteriormente (ID: {device_uuid})",
-            context=context
-        )
-        return device_uuid
-
-    log(
-        "Dispositivo não encontrado. Iniciando novo registro",
-        level="warning",
-        context=context
-    )
-
-    os.makedirs(os.path.dirname(DEVICE_UUID_FILE), exist_ok=True)
-
-    device_uuid = str(uuid.uuid4())
-
-
-    log(
-        f"Identificador único do dispositivo gerado: {device_uuid}",
-        context=context
-    )
-
-    payload = {
-        "deviceUid": device_uuid,
-        "deviceType": "raspberrypi",
-        "name": "Sem Nome",  # TODO: tornar configurável
-        "hostname": socket.gethostname(),
-    }
-
-    log("Enviando dados do dispositivo para a API", context=context)
-
-    try:
-        response = requests.post(url, json=payload, timeout=5)
-
-        if response.status_code in (200, 201):
-            log(
-                "Dispositivo registrado com sucesso na API",
-                context=context
-            )
-            path.write_text(device_uuid)
-        else:
-            log(
-                f"API respondeu com erro ({response.status_code}): {response.text}",
-                level="error",
-                context=context
-            )
-
-    except requests.exceptions.RequestException as e:
-        log(
-            f"Falha ao comunicar com a API: {e.__cause__}",
-            level="critical",
-            context=context
-        )
-
-
-    return device_uuid
-
-
-
-
-
-
 
 
 def register_or_get_device():
     logger = get_logger("DEVICE")
-
     DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
     url = "http://192.168.0.117:8080/api/devices/"
+    # TODO: data get para verificar se foi mesmo salvo!
 
     logger.info("Verificando se o dispositivo já está registrado")
 
@@ -145,6 +65,8 @@ def register_or_get_device():
         raise SystemExit(1)
 
     return device_uuid
+
+
 
 
 
