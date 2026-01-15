@@ -33,7 +33,7 @@ def register_or_get_device():
 
     device_uuid = str(uuid.uuid4())
 
-    logger.info("Identificador único do dispositivo gerado: %s",device_uuidl)
+    logger.info("Identificador único do dispositivo gerado: %s",device_uuid)
 
     payload = {
         "deviceUid": device_uuid,
