@@ -55,11 +55,11 @@ class SensorRunner(threading.Thread):
             try:
                 value = self.sensor.read()
                 mqtt_client.send_data(value, self.sensor)
-
-                self.logger.debug(
-                    "Leitura realizada com sucesso",
-                    extra={"value": value}
-                )
+                #
+                # self.logger.debug(
+                #     "Leitura realizada com sucesso",
+                #     extra={"value": value}
+                # )
 
             except SensorError as e:
                 self.had_error = True

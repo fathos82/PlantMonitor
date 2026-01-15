@@ -63,7 +63,7 @@ def setup_logging(rules: dict[str, int]):
         rich_tracebacks=True
     )
 
-    rich_handler.setLevel(logging.DEBUG)  # ⚠️ permissivo
+    rich_handler.setLevel(logging.DEBUG)
 
     rich_handler.setFormatter(
         CompactContextFormatter(
@@ -77,7 +77,7 @@ def setup_logging(rules: dict[str, int]):
         maxBytes=5_000_000,
         backupCount=5
     )
-    file_handler.setLevel(logging.DEBUG)  # ⚠️ permissivo
+    file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(file_formatter)
 
     # Filtro de decisão do usuário
