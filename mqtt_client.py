@@ -42,6 +42,7 @@ def send_data(data, sensor:AbstractSensor):
         }
 
         payload = json.dumps(map_data)
+        logger.debug("Sending data: %s", payload)
         client.publish(TOPIC, payload)
     except Exception as e:
         print(e)
