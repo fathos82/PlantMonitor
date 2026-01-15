@@ -7,7 +7,7 @@ from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
 from sensors.sensors import AbstractSensor
 
-logger = get_logger("SENSOR.HC_SR04")
+logger = get_logger("SENSOR", sub="HC_SR04")
 
 
 class HCSR04DistanceSensor(AbstractSensor):
