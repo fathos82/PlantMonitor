@@ -112,7 +112,7 @@ class AbstractSensor(ABC):
 
     @property
     def capabilities_values(self):
-        return [cap.name for cap in self.capabilities]
+        return [cap.value for cap in self.capabilities]
     # ===== Serialização =====
     def to_dict(self) -> dict:
         return {
