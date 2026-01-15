@@ -58,13 +58,15 @@ class SensorPool:
             return []
 
     def discover(self, device_uuid):
-        # TODO: add locks
         logger.info("Descoberta de sensores iniciada")
 
         sensors_from_api_data = self._fetch_sensors_from_api(device_uuid)
 
         for sensor_data in sensors_from_api_data:
             self._process_sensor_data(sensor_data)
+        if len(sensors_from_api_data) != 0:
+            logger.info("Nenhum sensor descoberto")
+        return
 
     def _process_sensor_data(self, sensor_data: dict):
         try:
