@@ -10,6 +10,25 @@ LOG_DIR = Path("logs")
 LOG_DIR.mkdir(exist_ok=True)
 
 
+class ExtraLoggerAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        kwargs.setdefault("extra", {})
+        kwargs["extra"].update(self.extra)
+        return msg, kwargs
+
+class CompactContextFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        # contexto visual = raiz (antes do ponto)
+        record.context = record.name.split(".")[0]
+
+        # subcontexto opcional
+        sub = getattr(record, "sub", None)
+        record.subctx = f"[{sub}] " if sub else ""
+
+        return super().format(record)
+
+
+
 class ContextLevelFilter(logging.Filter):
     def __init__(self, rules: dict[str, int]):
         super().__init__()
@@ -49,7 +68,9 @@ def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
 
     # 👉 Formatter do Rich: CONTEXTO + mensagem
     rich_handler.setFormatter(
-        logging.Formatter("%(name)s | %(message)s")
+        CompactContextFormatter(
+            "%(levelname)-8s %(context)-6s | %(subctx)s%(message)s"
+        )
     )
 
     file_handler = RotatingFileHandler(
@@ -70,12 +91,14 @@ def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
     root_logger.addHandler(rich_handler)
     root_logger.addHandler(file_handler)
 
-def get_logger(context: str):
-    """
-    Retorna um logger com o contexto como nome
-    Ex: MQTT, SENSOR, API
-    """
-    return logging.getLogger(context.upper())
+def get_logger(context: str, **extra):
+    base_logger = logging.getLogger(context.upper())
+
+    if extra:
+        return ExtraLoggerAdapter(base_logger, extra)
+
+    return base_logger
+
 
 
 
