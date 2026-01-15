@@ -26,18 +26,24 @@ class ContextLevelFilter(logging.Filter):
 
 
 def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
-    # Formatter APENAS para arquivo
+    # Formatter para arquivo (completo)
     file_formatter = logging.Formatter(
         "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
+    # Rich handler (console)
     rich_handler = RichHandler(
         show_time=False,
-        show_level=True,   # Rich já mostra o nível
+        show_level=True,
         show_path=False,
         rich_tracebacks=True,
         log_time_format=None
+    )
+
+    # 👉 Formatter do Rich: CONTEXTO + mensagem
+    rich_handler.setFormatter(
+        logging.Formatter("%(name)s | %(message)s")
     )
 
     file_handler = RotatingFileHandler(
@@ -48,7 +54,6 @@ def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
     file_handler.setFormatter(file_formatter)
 
     context_filter = ContextLevelFilter(rules)
-
     rich_handler.addFilter(context_filter)
     file_handler.addFilter(context_filter)
 
@@ -58,8 +63,6 @@ def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
 
     root_logger.addHandler(rich_handler)
     root_logger.addHandler(file_handler)
-
-import logging
 
 def get_logger(context: str):
     """
