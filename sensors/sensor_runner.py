@@ -17,7 +17,7 @@ class Command(Enum):
     SHUTDOWN = auto()
 
 
-class SensorThread(threading.Thread):
+class SensorRunner(threading.Thread):
 
     def __init__(self, sensor: AbstractSensor):
         super().__init__(daemon=True)
