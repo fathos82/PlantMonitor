@@ -11,15 +11,21 @@ from settings import MQTT_ADDRESS
 client = Client()
 TOPIC = "plant/data"
 PORT = 1883
+KEEPALIVE = 80
+logger = get_logger("SYSTEM")
 
 def connect():
-    logger = get_logger("SYSTEM")
-    logger.info("Connecting to MQTT broker...")
+    logger.info("Connecting to MQTT broker (%s:%s)...", MQTT_ADDRESS, PORT)
+
     try:
-        result = client.connect(MQTT_ADDRESS, PORT, 60)
-        logger.info("Conectado com sucesso ao broker MQTT")
-    except ConnectionRefusedError:
-        logger.exception(f"Erro ao conectar ao broker MQTT. Tente novamente mais tarde!")
+        client.connect(MQTT_ADDRESS, PORT, KEEPALIVE)
+    except Exception:
+        logger.exception(
+            "Erro ao conectar ao broker MQTT (%s:%s)",
+            MQTT_ADDRESS,
+            PORT
+        )
+        raise SystemExit(1)
 
 
 
