@@ -17,7 +17,7 @@ class Command(Enum):
     SHUTDOWN = auto()
 
 
-class SensorRunner(threading.Thread):
+class SensorWorker(threading.Thread):
 
     def __init__(self, sensor: AbstractSensor):
         super().__init__(daemon=True)
@@ -66,12 +66,22 @@ class SensorRunner(threading.Thread):
                     "Erro na leitura do sensor",
                     extra={"error": str(e)}
                 )
+                # send_to_api_error(
+                #    str(e),
+                #     sensor_id=self.sensor.api_id
+                # )
+
 
             except Exception:
                 self.had_error = True
                 self.logger.exception(
                     "Erro inesperado durante leitura do sensor"
                 )
+                # send_to_api_error(
+                #     "Erro inesperado ao tentar realizar leitura no sensor.",
+                #     sensor_id=self.sensor.api_id
+                # )
+
 
             time.sleep(SENSOR_SLEEP_TIME)
 
