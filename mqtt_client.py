@@ -34,7 +34,7 @@ def send_data(data, sensor:AbstractSensor):
     try:
         map_data = {
             "sensorId": sensor.api_id,
-            "capabilities": sensor.capabilities_values
+            "capabilities": sensor.capabilities_values,
             **data
         }
 
