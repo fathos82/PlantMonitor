@@ -16,13 +16,19 @@ class ContextLevelFilter(logging.Filter):
         self.rules = rules
 
     def filter(self, record: logging.LogRecord) -> bool:
-        context = record.name
+        name = record.name
         level = record.levelno
 
-        if context not in self.rules:
-            return False
+        # tenta match do mais específico → mais genérico
+        parts = name.split(".")
 
-        return level >= self.rules[context]
+        for i in range(len(parts), 0, -1):
+            context = ".".join(parts[:i])
+            if context in self.rules:
+                return level >= self.rules[context]
+
+        return False
+
 
 
 def setup_logging(rules: dict[str, int], default_level=logging.DEBUG):
