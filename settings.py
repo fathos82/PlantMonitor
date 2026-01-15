@@ -17,4 +17,5 @@ LOG_RULES = {
     "SYSTEM": logging.INFO,
     "SENSOR": logging.INFO,
     "DEVICE": logging.INFO,
+    "THREAD": logging.INFO,
 }
