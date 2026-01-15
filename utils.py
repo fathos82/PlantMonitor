@@ -5,13 +5,16 @@ import time
 import uuid
 from pathlib import Path
 import segno
+from requests import RequestException
 
 from logs import get_logger
+from mqtt_client import logger
 from settings import DEVICE_API_URL, SENSOR_API_URL
 
 
 def register_or_get_device():
     logger = get_logger("DEVICE")
+    #todo: adicionar nome do device no log
     DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
     # TODO: data get para verificar se foi mesmo salvo!
 
@@ -80,38 +83,48 @@ def generate_qrcode_to_set_account(device_uuid):
 
 
 
+
 def get_sensors_from_api_by_device_uuid(device_uuid, since):
+    logger = get_logger("SYSTEM")
+    logger.debug(
+        "Requisitando sensores da API",
+        extra={
+            "device_uuid": device_uuid,
+            "since": since,
+            "url": SENSOR_API_URL,
+        }
+    )
 
-    # todo: add logs
-    response = requests.get(SENSOR_API_URL, params={"deviceUid": device_uuid})
+    try:
+        response = requests.get(SENSOR_API_URL,params={"deviceUid": device_uuid},timeout=5)
+        logger.debug("Resposta da API recebida",)
+        if response.status_code in (200, 201):
+            data = response.json()
 
-    if response.status_code in (200, 201):
-        return response.json()
+            logger.debug("Sensores retornados com sucesso")
 
+            return data
+
+        logger.debug("API respondeu com status inesperado")
+
+    except requests.exceptions.RequestException as e:
+        logger.error("Falha na comunicação com a API")
     return None
 
 import requests
-#
-# def send_to_api_error(message, sensor_id):
-#     url = f"http://192.168.0.117:8080/api/sensors/{sensor_id}/errors/"
-#     data = {"message": message}
-#
-#     try:
-#         response = requests.post(url, json=data, timeout=5)
-#
-#         if response.ok:
-#             log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO,
-#                 context=LogContext.API)
-#         else:
-#             log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
-#                 level=LogLevel.ERROR, context=LogContext.API)
-#
-#     except RequestException as e:
-#         # engloba Timeout, ConnectionError, etc
-#         log(
-#             f"Falha ao enviar erro do sensor para API "
-#             f"(sensor_id={sensor_id}): {e}",
-#             level=LogLevel.WARNING,
-#             context=LogContext.API
-#         )
+def send_to_api_error(message, sensor_id):
+    logger = get_logger("SYSTEM")
+    url = f"http://192.168.0.117:8080/api/sensors/{sensor_id}/errors/"
+    data = {"message": message}
+
+    try:
+        response = requests.post(url, json=data, timeout=5)
+
+        if response.ok:
+            logger.warning(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})")
+        else:
+            logger.error(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})")
+    except RequestException as e:
+        # engloba Timeout, ConnectionError, etc
+        logger.error(f"Falha ao enviar erro do sensor para API " f"(sensor_id={sensor_id}): {e}")
 

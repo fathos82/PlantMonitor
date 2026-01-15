@@ -134,4 +134,5 @@ class HCSR04DistanceSensor(AbstractSensor):
 
     def shutdown(self) -> None:
         logger.info("Desligando sensor HC-SR04")
+        # todo: shutdown
         GPIO.cleanup()
