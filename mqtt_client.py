@@ -30,20 +30,24 @@ def connect():
 
 
 
+
 def send_data(data, sensor:AbstractSensor):
+    def perform_send():
+        pass
+    #todo:
+    # atualmente esta sendo separado dados diferentes e enviando, no futuro é interessante que os envie juntos!
     try:
-        print(data)
-        map_data = {
-            "sensorId": sensor.api_id,
-            "capabilities": sensor.capabilities,
-            **data
-        }
-        print("POOOo")
-        logger.debug(map_data)
-        payload = json.dumps(map_data)
-        print(payload)
-        logger.info("Sending data to MQTT: %s", str(payload))
-        logger.debug("Sending data: %s", str(payload))
-        client.publish(TOPIC, payload)
+        for capability in sensor.capabilities:
+                if capability in data:
+                    value = data[capability]
+                    map_data = {
+                        "measuredAt": data["timestamp"],
+                        "sensorId": sensor.api_id,
+                        "value": value,
+                    }
+                    payload = json.dumps(map_data)
+                    logger.debug("Sending data: %s", str(payload))
+                    client.publish(TOPIC, payload)
+
     except Exception as e:
-        print(e)
+        logger.error("Error sending data: %s", str(e))
