@@ -13,13 +13,13 @@ TOPIC = "plant/data"
 PORT = 1883
 
 def connect():
-    get_logger("SYSTEM").info("Connecting to MQTT broker...")
-    result = client.connect(MQTT_ADDRESS, PORT, 60)
-
-    if result == 0:
-        print("Conectado com sucesso ao broker MQTT")
-    else:
-        print(f"Erro ao conectar. Código: {result}")
+    logger = get_logger("SYSTEM")
+    logger.info("Connecting to MQTT broker...")
+    try:
+        result = client.connect(MQTT_ADDRESS, PORT, 60)
+        logger.info("Conectado com sucesso ao broker MQTT")
+    except ConnectionRefusedError:
+        logger.exception(f"Erro ao conectar ao broker MQTT. Tente novamente mais tarde!")
 
 
 
