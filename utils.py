@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 import segno
 from requests import RequestException
 
+from logs import get_logger
 from sensors.sensors import AbstractSensor
 
 
@@ -83,45 +84,68 @@ def register_or_get_device():
 
 
 
-import requests
-from settings import log, LogLevel, LogContext
 
 
-def register_sensor_on_api(sensor_name, capabilities, device_uuid):
-    url = "http://192.168.0.117:8080/api/sensors/"
 
-    log(f"Registrando sensor {sensor_name}", context=LogContext.API)
+
+
+def register_or_get_device():
+    logger = get_logger("DEVICE")
+
+    DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
+    url = "http://192.168.0.117:8080/api/devices/"
+
+    logger.info("Verificando se o dispositivo já está registrado")
+
+    path = Path(DEVICE_UUID_FILE)
+
+    if path.exists():
+        device_uuid = path.read_text().strip()
+        logger.info(
+            "Dispositivo já registrado anteriormente (ID: %s)",
+            device_uuid
+        )
+        return device_uuid
+
+    logger.warning("Dispositivo não encontrado. Iniciando novo registro")
+
+    os.makedirs(os.path.dirname(DEVICE_UUID_FILE), exist_ok=True)
+
+    device_uuid = str(uuid.uuid4())
+
+    logger.info(
+        "Identificador único do dispositivo gerado: %s",
+        device_uuid
+    )
 
     payload = {
-        "deviceUuId": device_uuid,
-        "sensorName": sensor_name,
-        "capabilities": capabilities,
+        "deviceUid": device_uuid,
+        "deviceType": "raspberrypi",
+        "name": "Sem Nome",  # TODO: tornar configurável
+        "hostname": socket.gethostname(),
     }
 
+    logger.info("Enviando dados do dispositivo para a API")
+
     try:
-        print(payload)
         response = requests.post(url, json=payload, timeout=5)
 
         if response.status_code in (200, 201):
-            log(f"Sensor registrado: {sensor_name}", context=LogContext.API)
-            return response.json()
+            logger.info("Dispositivo registrado com sucesso na API")
+            path.write_text(device_uuid)
+        else:
+            logger.error(
+                "API respondeu com erro (%s): %s",
+                response.status_code,
+                response.text
+            )
 
-        log(
-            f"Falha ao registrar sensor {sensor_name} (HTTP {response.status_code})",
-            level=LogLevel.ERROR,
-            context=LogContext.API
-        )
-        return None
+    except requests.exceptions.RequestException:
+        logger.exception("Falha ao comunicar com a API")
+        raise SystemExit(1)
 
-    except requests.exceptions.RequestException as e:
-        log(
-            f"Erro ao registrar sensor {sensor_name}: {e}",
-            level=LogLevel.ERROR,
-            context=LogContext.API
-        )
-        return None
+    return device_uuid
 
-    # todo: add logs response
 
 
 def generate_qrcode_to_set_account(device_uuid):
@@ -181,8 +205,7 @@ def send_data(data, sensor:AbstractSensor):
     try:
         dt = datetime.now(timezone.utc)
         timestamp = dt.isoformat().replace("+00:00", "Z")
-        print(data)
-        print(data["distance_cm"])
+
         map_data = {
             "type": "distance",
             "unit": "celsius",
@@ -190,9 +213,8 @@ def send_data(data, sensor:AbstractSensor):
             "sensorId": sensor.api_id,
             "measuredAt": str(timestamp)
         }
-        print(map_data)
+
         payload = json.dumps(map_data)
-        print("payload")
-        print(client.publish(TOPIC, payload))
+        client.publish(TOPIC, payload)
     except Exception as e:
         print(e)
