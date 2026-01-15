@@ -36,7 +36,7 @@ def register_or_get_device():
 
     device_uuid = str(uuid.uuid4())
 
-    logger.info("Identificador único do dispositivo gerado: %s",device_uuid)
+    logger.debug("Identificador único do dispositivo gerado: %s",device_uuid)
 
     payload = {
         "deviceUid": device_uuid,
@@ -45,7 +45,7 @@ def register_or_get_device():
         "hostname": socket.gethostname(),
     }
 
-    logger.info("Enviando dados do dispositivo para a API")
+    logger.debug("Enviando dados do dispositivo para a API")
 
     try:
         response = requests.post(DEVICE_API_URL, json=payload, timeout=5)
@@ -54,14 +54,14 @@ def register_or_get_device():
             logger.info("Dispositivo registrado com sucesso na API")
             path.write_text(device_uuid)
         else:
-            logger.error(
+            logger.critical(
                 "API respondeu com erro (%s): %s",
                 response.status_code,
                 response.text
             )
 
     except requests.exceptions.RequestException:
-        logger.exception("Falha ao comunicar com a API")
+        logger.critical("Falha ao comunicar com a API")
         raise SystemExit(1)
 
     return device_uuid

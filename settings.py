@@ -12,10 +12,10 @@ DEVICE_API_URL = BASE_API_URL + "devices/"
 MQTT_ADDRESS = "192.168.0.107"
 
 
-
 LOG_RULES = {
     "SYSTEM": logging.WARNING,
-    "SENSOR": logging.DEBUG,
-    "DEVICE": logging.WARNING,
-    "THREAD": logging.WARNING,
+    "SENSOR_POOL": logging.INFO,
+    "SENSOR": None,
+    "SENSOR_WORKER": logging.DEBUG,
+    "DEVICE": logging.INFO,
 }

@@ -6,7 +6,7 @@ from sensors.sensor_factory import sensor_factory
 from sensors.sensors import AbstractSensor, SensorModel
 from utils import get_sensors_from_api_by_device_uuid
 
-logger = get_logger("SYSTEM")
+logger = get_logger("SENSOR_POOL")
 
 
 class SensorPool:

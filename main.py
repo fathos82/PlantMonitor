@@ -14,6 +14,7 @@ from utils import register_or_get_device, generate_qrcode_to_set_account
 
 def device_watcher(device_uuid):
     # todo: criar variável de controlle
+    # todo: verificar se precisa de logos
     while True:
         sensor_pool.discover(device_uuid)
         for sensor_id in sensor_pool.sensors_to_remove:

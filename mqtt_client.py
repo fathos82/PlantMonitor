@@ -15,12 +15,13 @@ KEEPALIVE = 80
 logger = get_logger("SYSTEM")
 
 def connect():
-    logger.info("Connecting to MQTT broker (%s:%s)...", MQTT_ADDRESS, PORT)
+    logger.info("Inicializando conexão com servidor mqtt.")
+    logger.debug("Connecting to MQTT broker (%s:%s)...", MQTT_ADDRESS, PORT)
 
     try:
         client.connect(MQTT_ADDRESS, PORT, KEEPALIVE)
     except Exception:
-        logger.exception(
+        logger.critical(
             "Erro ao conectar ao broker MQTT (%s:%s)",
             MQTT_ADDRESS,
             PORT
