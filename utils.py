@@ -7,12 +7,12 @@ from pathlib import Path
 import segno
 
 from logs import get_logger
+from settings import DEVICE_API_URL
 
 
 def register_or_get_device():
     logger = get_logger("DEVICE")
     DEVICE_UUID_FILE = os.path.expanduser("~/.plantmonitor/device_id")
-    url = "http://192.168.0.117:8080/api/devices/"
     # TODO: data get para verificar se foi mesmo salvo!
 
     logger.info("Verificando se o dispositivo já está registrado")
@@ -45,7 +45,7 @@ def register_or_get_device():
     logger.info("Enviando dados do dispositivo para a API")
 
     try:
-        response = requests.post(url, json=payload, timeout=5)
+        response = requests.post(DEVICE_API_URL, json=payload, timeout=5)
 
         if response.status_code in (200, 201):
             logger.info("Dispositivo registrado com sucesso na API")
