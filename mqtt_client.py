@@ -39,7 +39,7 @@ def send_data(data, sensor:AbstractSensor):
             "sensorId": sensor.api_id,
         }
 
-
+        print("OI")
         payload = json.dumps(map_data)
         print(payload)
         logger.info("OIIII")
