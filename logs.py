@@ -51,7 +51,7 @@ class ContextLevelFilter(logging.Filter):
 def setup_logging(rules: dict[str, int]):
     # Formatter de arquivo (completo)
     file_formatter = logging.Formatter(
-        "%(asctime)s | %(\)-8s | %(name)s | %(message)s",
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
