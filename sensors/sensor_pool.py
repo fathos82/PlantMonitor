@@ -105,7 +105,7 @@ class SensorPool:
             )
 
         except Exception:
-            logger.exception(
+            logger.error(
                 "Erro inesperado ao processar sensor | data=%s",
                 sensor_data
             )
