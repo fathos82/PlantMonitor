@@ -32,7 +32,7 @@ def connect():
 
 def send_data(data, sensor:AbstractSensor):
     try:
-
+        print(data)
 
         map_data = {
             "type": "distance",
