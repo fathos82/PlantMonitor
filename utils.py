@@ -156,12 +156,7 @@ def generate_qrcode_to_set_account(device_uuid):
         time.sleep(1)
 
 
-BROKER = "192.168.0.117"
-PORT = 1883
-TOPIC = "plant/data"
 
-client = mqtt.Client()
-client.connect(BROKER, PORT, 60)
 
 
 
@@ -177,44 +172,27 @@ def get_sensors_from_api_by_device_uuid(device_uuid, since):
     return None
 
 import requests
+#
+# def send_to_api_error(message, sensor_id):
+#     url = f"http://192.168.0.117:8080/api/sensors/{sensor_id}/errors/"
+#     data = {"message": message}
+#
+#     try:
+#         response = requests.post(url, json=data, timeout=5)
+#
+#         if response.ok:
+#             log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO,
+#                 context=LogContext.API)
+#         else:
+#             log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
+#                 level=LogLevel.ERROR, context=LogContext.API)
+#
+#     except RequestException as e:
+#         # engloba Timeout, ConnectionError, etc
+#         log(
+#             f"Falha ao enviar erro do sensor para API "
+#             f"(sensor_id={sensor_id}): {e}",
+#             level=LogLevel.WARNING,
+#             context=LogContext.API
+#         )
 
-def send_to_api_error(message, sensor_id):
-    url = f"http://192.168.0.117:8080/api/sensors/{sensor_id}/errors/"
-    data = {"message": message}
-
-    try:
-        response = requests.post(url, json=data, timeout=5)
-
-        if response.ok:
-            log(f"Erro do sensor enviado com sucesso (sensor_id={sensor_id})", level=LogLevel.INFO,
-                context=LogContext.API)
-        else:
-            log(f"Falha ao enviar erro do sensor "f"(sensor_id={sensor_id}, status={response.status_code})",
-                level=LogLevel.ERROR, context=LogContext.API)
-
-    except RequestException as e:
-        # engloba Timeout, ConnectionError, etc
-        log(
-            f"Falha ao enviar erro do sensor para API "
-            f"(sensor_id={sensor_id}): {e}",
-            level=LogLevel.WARNING,
-            context=LogContext.API
-        )
-
-def send_data(data, sensor:AbstractSensor):
-    try:
-        dt = datetime.now(timezone.utc)
-        timestamp = dt.isoformat().replace("+00:00", "Z")
-
-        map_data = {
-            "type": "distance",
-            "unit": "celsius",
-            "value": data["distance_cm"],
-            "sensorId": sensor.api_id,
-            "measuredAt": str(timestamp)
-        }
-
-        payload = json.dumps(map_data)
-        client.publish(TOPIC, payload)
-    except Exception as e:
-        print(e)

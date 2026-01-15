@@ -3,10 +3,15 @@ import queue
 import time
 from enum import Enum, auto
 
+import mqtt_client
 from errors import SensorError
 from sensors.sensors import AbstractSensor
 from settings import SENSOR_SLEEP_TIME, SENSOR_ERROR_SLEEP_TIME
-from utils import send_data, send_to_api_error
+
+
+# todo: fix api send error
+
+# from utils import
 
 
 class Command(Enum):
@@ -42,20 +47,21 @@ class SensorRunner(threading.Thread):
 
             try:
                 value = self.sensor.read()
-                send_data(value, self.sensor)
+                mqtt_client.send_data(value, self.sensor)
                 print(f"[RUNNER] leitura: {value}")
 
             except SensorError as e:
                 self.had_error = True
-                send_to_api_error(e.message, e.sensor_id)
+                # todo: fix api send error
+                # send_to_api_error(e.message, e.sensor_id)
                 print(f"[RUNNER][ERRO] {e}")
 
             except Exception:
                 self.had_error = True
-                send_to_api_error(
-                    "Erro inesperado ao tentar realizar leitura no sensor.",
-                    sensor_id=self.sensor.api_id
-                )
+                # send_to_api_error(
+                #     "Erro inesperado ao tentar realizar leitura no sensor.",
+                #     sensor_id=self.sensor.api_id
+                # )
 
 
 
