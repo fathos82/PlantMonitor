@@ -32,8 +32,6 @@ def connect():
 
 def send_data(data, sensor:AbstractSensor):
     try:
-        print(data)
-
         map_data = {
             "type": "distance",
             "unit": "celsius",
@@ -41,7 +39,9 @@ def send_data(data, sensor:AbstractSensor):
             "sensorId": sensor.api_id,
         }
 
+
         payload = json.dumps(map_data)
+        logger.info("Sending data to MQTT: %s", payload)
         logger.debug("Sending data: %s", payload)
         client.publish(TOPIC, payload)
     except Exception as e:
