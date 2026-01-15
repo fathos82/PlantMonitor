@@ -110,9 +110,7 @@ class AbstractSensor(ABC):
 
     # ===== Identificador físico determinístico =====
 
-    @property
-    def capabilities_values(self):
-        return [cap for cap in self.capabilities]
+
     # ===== Serialização =====
     def to_dict(self) -> dict:
         return {
@@ -120,7 +118,7 @@ class AbstractSensor(ABC):
             "localId": self.local_id,
             "model": self.model,
             "interface": self.interface,
-            "capabilities": self.capabilities_values,
+            "capabilities": self.capabilities,
             "healthy": self.health(),
         }
 
