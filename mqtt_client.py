@@ -33,15 +33,13 @@ def connect():
 def send_data(data, sensor:AbstractSensor):
     try:
         map_data = {
-            "type": "distance",
-            "unit": "celsius",
             "sensorId": sensor.api_id,
+            "capabilities": sensor.capabilities_values
+            **data
         }
 
-        print("OI")
-        payload = json.dumps(data)
-        print(payload)
-        logger.info("OIIII")
+
+        payload = json.dumps(map_data)
         logger.info("Sending data to MQTT: %s", str(payload))
         logger.debug("Sending data: %s", str(payload))
         client.publish(TOPIC, payload)
