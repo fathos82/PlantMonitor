@@ -44,6 +44,7 @@ def send_data(data, sensor:AbstractSensor):
                         "measuredAt": data["measuredAt"],
                         "sensorId": sensor.api_id,
                         "value": value,
+                        "type": capability
                     }
                     payload = json.dumps(map_data)
                     logger.debug("Sending data: %s", str(payload))
