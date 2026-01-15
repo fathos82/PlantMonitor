@@ -10,9 +10,7 @@ LOG_DIR = Path("logs")
 LOG_DIR.mkdir(exist_ok=True)
 
 
-# ─────────────────────────────────────────────
-# LoggerAdapter para subcontextos (sensor, etc.)
-# ─────────────────────────────────────────────
+
 class ExtraLoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         kwargs.setdefault("extra", {})
@@ -20,9 +18,7 @@ class ExtraLoggerAdapter(logging.LoggerAdapter):
         return msg, kwargs
 
 
-# ─────────────────────────────────────────────
-# Formatter compacto (console)
-# ─────────────────────────────────────────────
+
 class CompactContextFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         record.context = record.name.split(".")[0]
@@ -33,9 +29,7 @@ class CompactContextFormatter(logging.Formatter):
         return super().format(record)
 
 
-# ─────────────────────────────────────────────
-# Filtro por contexto + nível (decisão do usuário)
-# ─────────────────────────────────────────────
+
 class ContextLevelFilter(logging.Filter):
     def __init__(self, rules: dict[str, int]):
         super().__init__()
@@ -53,13 +47,11 @@ class ContextLevelFilter(logging.Filter):
         return False
 
 
-# ─────────────────────────────────────────────
-# Setup global
-# ─────────────────────────────────────────────
+
 def setup_logging(rules: dict[str, int]):
     # Formatter de arquivo (completo)
     file_formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+        "%(asctime)s | %(\)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
@@ -70,10 +62,12 @@ def setup_logging(rules: dict[str, int]):
         show_path=False,
         rich_tracebacks=True
     )
+
     rich_handler.setLevel(logging.DEBUG)  # ⚠️ permissivo
+
     rich_handler.setFormatter(
         CompactContextFormatter(
-            "%(levelname)-8s %(context)-6s | %(subctx)s%(message)s"
+            "%(context)-12s | %(subctx)s%(message)s"
         )
     )
 
@@ -99,9 +93,7 @@ def setup_logging(rules: dict[str, int]):
     root_logger.addHandler(file_handler)
 
 
-# ─────────────────────────────────────────────
-# Factory de loggers
-# ─────────────────────────────────────────────
+
 def get_logger(context: str, **extra):
     base_logger = logging.getLogger(context.upper())
 

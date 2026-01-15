@@ -54,7 +54,7 @@ class SensorPool:
             logger.debug("Buscando sensores da API (device_uuid=%s)", device_uuid)
             return get_sensors_from_api_by_device_uuid(device_uuid, None)
         except Exception:
-            logger.exception("Erro ao buscar sensores da API")
+            logger.error("Erro ao buscar sensores da API")
             return []
 
     def discover(self, device_uuid):

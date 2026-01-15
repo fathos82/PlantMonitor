@@ -1,11 +1,13 @@
 import time
+from datetime import datetime, timezone
 from typing import Dict
 
 import RPi.GPIO as GPIO
 
 from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
-from sensors.sensors import AbstractSensor
+from sensors.sensors import AbstractSensor, SensorCapability
+from utils import get_instant
 
 logger = get_logger("SENSOR", sub="HC_SR04")
 
@@ -122,10 +124,9 @@ class HCSR04DistanceSensor(AbstractSensor):
         logger.debug("Distância medida: %.2f cm", distance_cm)
 
         return {
-            "distance_cm": round(distance_cm, 2),
-            "timestamp": time.time()
+            SensorCapability.DISTANCE: distance_cm,
+            "measuredAt": get_instant()
         }
-
     @property
     def local_id(self) -> str:
         local_id = f"distance:{self.trigger_pin}:{self.echo_pin}"

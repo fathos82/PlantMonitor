@@ -3,6 +3,7 @@ import os
 import socket
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 import segno
 from requests import RequestException
@@ -128,3 +129,6 @@ def send_to_api_error(message, sensor_id):
         # engloba Timeout, ConnectionError, etc
         logger.error(f"Falha ao enviar erro do sensor para API " f"(sensor_id={sensor_id}): {e}")
 
+
+def get_instant():
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

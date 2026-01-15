@@ -32,15 +32,13 @@ def connect():
 
 def send_data(data, sensor:AbstractSensor):
     try:
-        dt = datetime.now(timezone.utc)
-        timestamp = dt.isoformat().replace("+00:00", "Z")
+
 
         map_data = {
             "type": "distance",
             "unit": "celsius",
             "value": data["distance_cm"],
             "sensorId": sensor.api_id,
-            "measuredAt": str(timestamp)
         }
 
         payload = json.dumps(map_data)
