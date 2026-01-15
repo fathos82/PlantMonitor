@@ -37,7 +37,7 @@ def send_data(data, sensor:AbstractSensor):
             "capabilities": sensor.capabilities_values,
             **data
         }
-
+        print("POOOo")
         logger.debug(map_data)
         payload = json.dumps(map_data)
         print(payload)
