@@ -7,7 +7,7 @@ from pathlib import Path
 import segno
 
 from logs import get_logger
-from settings import DEVICE_API_URL
+from settings import DEVICE_API_URL, SENSOR_API_URL
 
 
 def register_or_get_device():
@@ -81,9 +81,9 @@ def generate_qrcode_to_set_account(device_uuid):
 
 
 def get_sensors_from_api_by_device_uuid(device_uuid, since):
-    url = "http://192.168.0.117:8080/api/sensors/"
+
     # todo: add logs
-    response = requests.get(url, params={"deviceUid": device_uuid})
+    response = requests.get(SENSOR_API_URL, params={"deviceUid": device_uuid})
 
     if response.status_code in (200, 201):
         return response.json()
