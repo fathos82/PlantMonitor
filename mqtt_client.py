@@ -41,7 +41,7 @@ def send_data(data, sensor:AbstractSensor):
                 if capability in data:
                     value = data[capability]
                     map_data = {
-                        "measuredAt": data["timestamp"],
+                        "measuredAt": data["measuredAt"],
                         "sensorId": sensor.api_id,
                         "value": value,
                     }
