@@ -16,7 +16,7 @@ logger = get_logger("SYSTEM")
 
 def connect():
     logger.info("Inicializando conexão com servidor mqtt.")
-    logger.debug("Connecting to MQTT broker (%s:%s)...", MQTT_ADDRESS, PORT)
+    logger.debug("Conectando ao MQTT broker (%s:%s)...", MQTT_ADDRESS, PORT)
 
     try:
         client.connect(MQTT_ADDRESS, PORT, KEEPALIVE)
@@ -41,8 +41,8 @@ def send_data(data, sensor:AbstractSensor):
 
 
         payload = json.dumps(map_data)
-        logger.info("Sending data to MQTT: %s", payload)
-        logger.debug("Sending data: %s", payload)
+        logger.info("Sending data to MQTT: %s", str(payload))
+        logger.debug("Sending data: %s", str(payload))
         client.publish(TOPIC, payload)
     except Exception as e:
         print(e)
