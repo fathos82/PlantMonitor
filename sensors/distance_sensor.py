@@ -30,7 +30,7 @@ class HCSR04DistanceSensor(AbstractSensor):
         self.echo_pin = int(kwargs.get("echo_pin", 24))
 
     def setup(self) -> None:
-        logger.debug("Iniciando setup do sensor")
+        logger.info("Iniciando setup do sensor")
 
         try:
             GPIO.setmode(GPIO.BCM)
