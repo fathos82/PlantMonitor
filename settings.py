@@ -15,4 +15,5 @@ MQTT_ADDRESS = "192.168.0.117"
 LOG_RULES = {
     "SYSTEM": logging.INFO,
     "SENSOR": logging.INFO,
+    "DEVICE": logging.INFO,
 }
