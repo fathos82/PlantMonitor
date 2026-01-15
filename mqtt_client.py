@@ -41,6 +41,8 @@ def send_data(data, sensor:AbstractSensor):
 
 
         payload = json.dumps(map_data)
+        print(payload)
+        logger.info("OIIII")
         logger.info("Sending data to MQTT: %s", str(payload))
         logger.debug("Sending data: %s", str(payload))
         client.publish(TOPIC, payload)
