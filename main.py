@@ -35,12 +35,15 @@ def device_watcher(device_uuid):
 def main():
     # todo: improve logs
     # todo: verify is exists qr code
+
     publisher = StreamPublisher(
-        source="/dev/video1",
+        source="rtsp://quarto:quarto123@192.168.0.120:554/stream1",
         destination_rtmp="rtmp://161.97.148.7:1935/any",
-        source_type="usb",
-        reencode=True,
+        source_type="ip",
+        reencode=False,
     )
+
+    publisher.start()
 
     publisher.start()
 
