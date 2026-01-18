@@ -46,7 +46,7 @@ def main():
     publisher.start()
 
     while True:
-        time.sleep(2)
+        time.sleep(99999)
 
     device_uuid = register_or_get_device()
     mqtt_client.connect()
