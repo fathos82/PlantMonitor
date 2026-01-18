@@ -1,10 +1,14 @@
 # todo: problema com GPIO -> https://chatgpt.com/c/695d3a4d-83a0-8332-9ff5-78f43c82bce9
 # Alternativa: sudo apt install python3.13-dev
+# sudo apt update
+# sudo apt install -y ffmpeg
+
 import threading
 import time
 from logging import CRITICAL
 
 import mqtt_client
+from cams.stream_publisher import StreamPublisher
 from sensors.sensor_pool import sensor_pool
 from settings import  WATCHER_SLEEP_TIME
 from thread_supervisor import thread_supervisor
@@ -31,6 +35,15 @@ def device_watcher(device_uuid):
 def main():
     # todo: improve logs
     # todo: verify is exists qr code
+    publisher = StreamPublisher(
+        source="/dev/video1",
+        destination_rtmp="rtmp://161.97.148.7:1935/any",
+        source_type="usb",
+        reencode=True,
+    )
+
+    publisher.start()
+
     device_uuid = register_or_get_device()
     mqtt_client.connect()
     device_thread = threading.Thread(target=device_watcher, args=(device_uuid,))
