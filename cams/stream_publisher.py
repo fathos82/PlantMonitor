@@ -5,13 +5,13 @@ from typing import Optional
 
 class StreamPublisher:
     def __init__(
-            self,
-            source: str,
-            destination_rtmp: str,
-            source_type: str = "usb",  # "usb" | "ip"
-            video_size: str = "1280x720",
-            framerate: int = 30,
-            reencode: bool = True,
+        self,
+        source: str,
+        destination_rtmp: str,
+        source_type: str = "usb",  # "usb" | "ip"
+        video_size: str = "1280x720",
+        framerate: int = 30,
+        reencode: bool = True,
     ):
         """
         source:
@@ -32,6 +32,7 @@ class StreamPublisher:
     def _build_ffmpeg_cmd(self) -> list[str]:
         cmd = ["ffmpeg", "-loglevel", "info"]
 
+        # ---------- INPUT ----------
         if self.source_type == "usb":
             cmd += [
                 "-f", "v4l2",
@@ -45,10 +46,10 @@ class StreamPublisher:
                 "-rtsp_transport", "tcp",
                 "-i", self.source,
             ]
-
         else:
             raise ValueError("source_type deve ser 'usb' ou 'ip'")
 
+        # ---------- VIDEO ----------
         if self.reencode:
             cmd += [
                 "-c:v", "libx264",
@@ -58,6 +59,10 @@ class StreamPublisher:
         else:
             cmd += ["-c:v", "copy"]
 
+        # ---------- AUDIO ----------
+        cmd += ["-an"]  # 🔥 remove áudio completamente
+
+        # ---------- OUTPUT ----------
         cmd += [
             "-f", "flv",
             self.destination_rtmp,
@@ -70,16 +75,17 @@ class StreamPublisher:
             raise RuntimeError("Stream já está rodando")
 
         cmd = self._build_ffmpeg_cmd()
+
         print("Iniciando stream:")
+        print(" ".join(cmd))
+
         self.process = subprocess.Popen(
             cmd,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            start_new_session=True
+            start_new_session=True,
         )
-        print(" ".join(cmd))
-
 
     def stop(self):
         if not self.process:
