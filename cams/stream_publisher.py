@@ -5,13 +5,13 @@ from typing import Optional
 
 class StreamPublisher:
     def __init__(
-        self,
-        source: str,
-        destination_rtmp: str,
-        source_type: str = "usb",  # "usb" | "ip"
-        video_size: str = "1280x720",
-        framerate: int = 30,
-        reencode: bool = True,
+            self,
+            source: str,
+            destination_rtmp: str,
+            source_type: str = "usb",  # "usb" | "ip"
+            video_size: str = "1280x720",
+            framerate: int = 30,
+            reencode: bool = True,
     ):
         """
         source:
@@ -71,12 +71,15 @@ class StreamPublisher:
 
         cmd = self._build_ffmpeg_cmd()
         print("Iniciando stream:")
-        print(" ".join(cmd))
-
         self.process = subprocess.Popen(
             cmd,
             stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True
         )
+        print(" ".join(cmd))
+
 
     def stop(self):
         if not self.process:
