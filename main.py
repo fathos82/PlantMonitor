@@ -45,7 +45,6 @@ def main():
 
     publisher.start()
 
-    publisher.start()
 
     device_uuid = register_or_get_device()
     mqtt_client.connect()
