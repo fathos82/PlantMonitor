@@ -1,5 +1,5 @@
-from sensors.sensor_runner import SensorRunner, Command
-from sensors.sensors import AbstractSensor
+from sensors.base import AbstractSensor
+from sensors.runner import SensorRunner, Command
 
 
 class ThreadSupervisor:
