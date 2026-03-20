@@ -1,6 +1,9 @@
+import logging
 import subprocess
 import signal
 from typing import Optional
+
+logger = logging.getLogger("CAMERA")
 
 
 class StreamPublisher:
@@ -40,13 +43,13 @@ class StreamPublisher:
                 "-framerate", str(self.framerate),
                 "-i", self.source,
             ]
-
         elif self.source_type == "ip":
             cmd += [
                 "-rtsp_transport", "tcp",
                 "-i", self.source,
             ]
         else:
+            logger.error("source_type deve ser 'usb' ou 'ip'")
             raise ValueError("source_type deve ser 'usb' ou 'ip'")
 
         # ---------- VIDEO ----------
@@ -60,7 +63,7 @@ class StreamPublisher:
             cmd += ["-c:v", "copy"]
 
         # ---------- AUDIO ----------
-        cmd += ["-an"]  # 🔥 remove áudio completamente
+        cmd += ["-an"]
 
         # ---------- OUTPUT ----------
         cmd += [
@@ -76,8 +79,8 @@ class StreamPublisher:
 
         cmd = self._build_ffmpeg_cmd()
 
-        print("Iniciando stream:")
-        print(" ".join(cmd))
+        logger.info("Iniciando stream da fonte: %s", self.source)
+        logger.info("CMD: %s", " ".join(cmd))
 
         self.process = subprocess.Popen(
             cmd,
@@ -90,7 +93,7 @@ class StreamPublisher:
         if not self.process:
             return
 
-        print("Parando stream...")
+        logger.info("Parando stream...")
         self.process.send_signal(signal.SIGINT)
         self.process.wait()
         self.process = None
