@@ -1,12 +1,11 @@
 import time
-from datetime import datetime, timezone
 from typing import Dict
 
 import RPi.GPIO as GPIO
 
 from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
-from sensors.sensors import AbstractSensor, SensorCapability
+from sensors.base import AbstractSensor, SensorCapability
 from utils import get_instant
 
 logger = get_logger("SENSOR", sub="HC_SR04")
@@ -107,6 +106,7 @@ class HCSR04DistanceSensor(AbstractSensor):
                 )
 
         start = time.time()
+        timeout_end = time.time() + 0.05  # recalcula após o início do ECHO
 
         while GPIO.input(self.echo_pin) == 1:
             if time.time() > timeout_end:
@@ -127,6 +127,7 @@ class HCSR04DistanceSensor(AbstractSensor):
             SensorCapability.DISTANCE: distance_cm,
             "measuredAt": get_instant()
         }
+
     @property
     def local_id(self) -> str:
         local_id = f"distance:{self.trigger_pin}:{self.echo_pin}"
@@ -135,5 +136,4 @@ class HCSR04DistanceSensor(AbstractSensor):
 
     def shutdown(self) -> None:
         logger.info("Desligando sensor...")
-        # todo: shutdown
         GPIO.cleanup()
