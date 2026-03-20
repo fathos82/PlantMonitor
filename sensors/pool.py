@@ -1,10 +1,10 @@
-from typing import List, Dict
+from typing import Dict
 
+from api import client as api_client
 from logs import get_logger
-from sensors.distance_sensor import HCSR04DistanceSensor
-from sensors.sensor_factory import sensor_factory
-from sensors.sensors import AbstractSensor, SensorModel
-from utils import get_sensors_from_api_by_device_uuid
+from sensors.drivers.hcsr04 import HCSR04DistanceSensor
+from sensors.factory import sensor_factory
+from sensors.base import AbstractSensor, SensorModel
 
 logger = get_logger("SENSOR_POOL")
 
@@ -16,57 +16,23 @@ class SensorPool:
         self.sensors_to_add = []
 
         self.sensors_map: Dict[int, AbstractSensor] = {}
-        self.register_sensors_to_factory()
+        self._register_drivers()
 
-    def register_sensors_to_factory(self):
+    def _register_drivers(self):
         sensor_factory.register(SensorModel.HC_SR04, HCSR04DistanceSensor)
         logger.debug("Sensor HC_SR04 registrado no factory")
 
-    def __automatic_scan_sensors(self) -> List[AbstractSensor]:
-        logger.info("Varredura automática iniciada")
-
-        drivers: List[AbstractSensor] = [
-            HCSR04DistanceSensor()
-        ]
-
-        sensors: List[AbstractSensor] = []
-
-        for sensor in drivers:
-            sensor_name = sensor.__class__.__name__
-            try:
-                if sensor.probe():
-                    sensors.append(sensor)
-                    logger.info("Sensor detectado: %s", sensor_name)
-                else:
-                    logger.warning("Sensor ignorado: %s", sensor_name)
-            except Exception:
-                logger.exception("Erro durante probe do sensor %s", sensor_name)
-
-        logger.info(
-            "Varredura concluída (%d sensor(es) detectado(s))",
-            len(sensors)
-        )
-
-        return sensors
-
-    def _fetch_sensors_from_api(self, device_uuid):
-        try:
-            logger.debug("Buscando sensores da API (device_uuid=%s)", device_uuid)
-            return get_sensors_from_api_by_device_uuid(device_uuid, None)
-        except Exception:
-            logger.error("Erro ao buscar sensores da API")
-            return []
-
-    def discover(self, device_uuid):
+    def discover(self, device_uuid: str):
         logger.info("Descoberta de sensores iniciada")
 
-        sensors_from_api_data = self._fetch_sensors_from_api(device_uuid)
+        sensors_data = api_client.get_sensors(device_uuid)
 
-        for sensor_data in sensors_from_api_data:
-            self._process_sensor_data(sensor_data)
-        if len(sensors_from_api_data) != 0:
+        if not sensors_data:
             logger.info("Nenhum sensor descoberto")
-        return
+            return
+
+        for sensor_data in sensors_data:
+            self._process_sensor_data(sensor_data)
 
     def _process_sensor_data(self, sensor_data: dict):
         try:
