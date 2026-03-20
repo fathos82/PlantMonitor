@@ -13,3 +13,6 @@ device_id
 
 # OS
 .DS_Store
+
+./logs
+/logs/
