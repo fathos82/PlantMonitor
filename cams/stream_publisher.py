@@ -74,8 +74,10 @@ class StreamPublisher:
         return cmd
 
     def start(self):
-        if self.process:
+        if self.is_running():
             raise RuntimeError("Stream já está rodando")
+
+        self.process = None  # limpa referência de processo morto
 
         cmd = self._build_ffmpeg_cmd()
 

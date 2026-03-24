@@ -6,7 +6,9 @@ from typing import List, Optional, Dict
 from enum import Enum
 
 
+
 class SensorCapability(str, Enum):
+    MOCK = "mock"
     # Distância / Proximidade
     DISTANCE = "distance"
     PROXIMITY = "proximity"
@@ -64,15 +66,25 @@ class SensorModel(str, Enum):
 
 
 class AbstractSensor(ABC):
-
     """
     Contrato base para qualquer sensor físico ou lógico
     """
 
+    def __init__(self, **kwargs):
+        self.configure(**kwargs)
+        self.setup()
+
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if hasattr(cls, 'model') and cls.model is not None:
+            from sensors.creator import sensor_creator
+            sensor_creator.register(cls.model, cls)
+
+
     # ===== Identidade do sistema =====
     api_id: Optional[int] = None          # ID retornado pela API
     capabilities:List[SensorCapability] = []
-    is_initialized: bool = False
     # ===== Identidade física =====
     hardware_id: Optional[str] = None     # I2C addr, ROM ID, VID:PID
 
@@ -83,7 +95,7 @@ class AbstractSensor(ABC):
 
     # ===== Ciclo de vida =====
     @abstractmethod
-    def set_params(self, **kwargs) -> None:
+    def configure(self, **params) -> None:
         pass
     @abstractmethod
     def probe(self) -> bool:
@@ -124,10 +136,6 @@ class AbstractSensor(ABC):
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), ensure_ascii=False)
-
-
-
-
 
 #
 # class BME280Driver(SensorDriver):

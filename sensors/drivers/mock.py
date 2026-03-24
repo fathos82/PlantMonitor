@@ -17,7 +17,7 @@ class MockSensor(AbstractSensor):
     def local_id(self) -> str:
         return "mock:0"
 
-    def set_params(self, **kwargs) -> None:
+    def configure(self, **params) -> None:
         pass
 
     def probe(self) -> bool:

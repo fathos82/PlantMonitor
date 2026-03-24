@@ -1,28 +1,24 @@
 from typing import Dict
-
 from api import client as api_client
 from logs import get_logger
-from sensors.drivers.hcsr04 import HCSR04DistanceSensor
-from sensors.factory import sensor_factory
-from sensors.base import AbstractSensor, SensorModel
+from sensors.creator import sensor_creator
+from sensors.drivers.mock import MockSensor
+from sensors.runner import SensorRunner
 
 logger = get_logger("SENSOR_POOL")
 
 
 class SensorPool:
     def __init__(self):
-        self.sensors_to_update = []
-        self.sensors_to_remove = []
-        self.sensors_to_add = []
-
-        self.sensors_map: Dict[int, AbstractSensor] = {}
-        self._register_drivers()
-
-    def _register_drivers(self):
-        sensor_factory.register(SensorModel.HC_SR04, HCSR04DistanceSensor)
-        logger.debug("Sensor HC_SR04 registrado no factory")
+        self._runners: Dict[int, SensorRunner] = {}
 
     def discover(self, device_uuid: str):
+
+        sensor = MockSensor()
+        runner = SensorRunner(sensor)
+        self._runners[1] = runner
+        runner.start()
+
         logger.info("Descoberta de sensores iniciada")
 
         sensors_data = api_client.get_sensors(device_uuid)
@@ -31,64 +27,65 @@ class SensorPool:
             logger.info("Nenhum sensor descoberto")
             return
 
+        # active_ids = set()
+
         for sensor_data in sensors_data:
-            self._process_sensor_data(sensor_data)
+            sensor_id = self._process_sensor_data(sensor_data)
+            # if sensor_id is not None:
+            #     active_ids.add(sensor_id)
+
+        # self._remove_stale_runners(active_ids)
 
     def _process_sensor_data(self, sensor_data: dict):
         try:
             sensor_id = sensor_data["id"]
 
-            if sensor_id not in self.sensors_map:
-                logger.info("Novo sensor detectado (id=%s)", sensor_id)
-
-                sensor_instance = sensor_factory.create(sensor_data)
-
-                if sensor_instance.probe():
-                    self.sensors_map[sensor_id] = sensor_instance
-                    self.sensors_to_add.append(sensor_id)
-                    logger.info("Sensor %s adicionado ao pool", sensor_id)
-                else:
-                    logger.warning(
-                        "Sensor %s não respondeu ao probe",
-                        sensor_id
-                    )
+            if sensor_id not in self._runners:
+                self._add_runner(sensor_id, sensor_data)
             else:
-                self.sensors_to_update.append(sensor_id)
-                self.sensors_map[sensor_id].set_params(
-                    **sensor_data.get("parameters", {})
-                )
-                logger.debug(
-                    "Parâmetros atualizados para o sensor %s: %s",
-                    sensor_id,
-                    sensor_data.get("parameters")
-                )
+                self._update_runner(sensor_id, sensor_data)
+
+            return sensor_id
 
         except KeyError as e:
             logger.error(
                 "Dados inválidos do sensor (campo ausente: %s) | data=%s",
                 e,
-                sensor_data
+                sensor_data,
             )
-
         except Exception:
             logger.error(
                 "Erro inesperado ao processar sensor | data=%s",
-                sensor_data
+                sensor_data,
             )
 
-    def clear(self):
-        for sensor_id in self.sensors_to_remove.copy():
-            if sensor_id in self.sensors_map:
-                self.sensors_map.pop(sensor_id)
-                logger.info("Sensor %s removido do pool", sensor_id)
+        return None
 
-        self.sensors_to_remove.clear()
-        self.sensors_to_add.clear()
-        self.sensors_to_update.clear()
+    def _add_runner(self, sensor_id: int, sensor_data: dict):
+        logger.info("Adicionando runner para sensor %s", sensor_id)
 
-    @property
-    def sensors(self):
-        return self.sensors_map.values()
+        sensor = sensor_creator.create(sensor_data)
+        runner = SensorRunner(sensor)
+        self._runners[sensor_id] = runner
+        runner.start()
+
+
+
+    def _update_runner(self, sensor_id: int, sensor_data: dict):
+        runner = self._runners[sensor_id]
+        runner.update(**sensor_data.get("parameters", {}))
+        logger.debug(
+            "Parâmetros atualizados para sensor %s: %s",
+            sensor_id,
+            sensor_data.get("parameters"),
+        )
+
+    def _remove_stale_runners(self, active_ids: set):
+        stale_ids = set(self._runners.keys()) - active_ids
+
+        for sensor_id in stale_ids:
+            logger.info("Sensor %s removido da API — encerrando runner", sensor_id)
+            self._runners.pop(sensor_id).stop()
 
 
 sensor_pool = SensorPool()

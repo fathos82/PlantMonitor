@@ -1,21 +1,13 @@
 import threading
-import queue
 import time
-from enum import Enum, auto
 
-import mqtt_client
+import utils
+from api import mqtt
 from errors import SensorError
 from logs import get_logger
 from sensors.base import AbstractSensor
 from settings import SENSOR_SLEEP_TIME, SENSOR_ERROR_SLEEP_TIME
 from api.client import send_sensor_error
-
-
-class Command(Enum):
-    START = auto()
-    STOP = auto()
-    RELOAD = auto()
-    SHUTDOWN = auto()
 
 
 class SensorRunner(threading.Thread):
@@ -24,11 +16,9 @@ class SensorRunner(threading.Thread):
         super().__init__(daemon=True)
 
         self.sensor = sensor
-        self.commands = queue.Queue()
-        self.running = False
         self._stop_requested = False
         self.had_error = False
-
+        self._lock = threading.Lock()
         self.logger = get_logger(
             "SENSOR_WORKER",
             sub=sensor.model,
@@ -37,93 +27,90 @@ class SensorRunner(threading.Thread):
 
         self.logger.debug("Worker criado")
 
+    def stop(self):
+        self.logger.info("Encerrando sensor")
+        with self._lock:
+            self._stop_requested = True
+            self.sensor.shutdown()
+
+    def reload(self):
+        self.logger.warning("Recarregando sensor")
+        with self._lock:
+            self._reload_sensor()
+
+    def update(self, **kwargs):
+        self.logger.info("Atualizando parâmetros do sensor")
+        with self._lock:
+            self.sensor.configure(**kwargs)
+            self.sensor.setup()
+
     def run(self):
-        self.logger.debug("Worker iniciado")
+        self.logger.info("Worker iniciado")
+
+        self.initialize_sensor()
 
         while not self._stop_requested:
-            self._handle_commands()
+            with self._lock:
+                if self._stop_requested:
+                    break
 
-            if not self.running:
-                time.sleep(SENSOR_SLEEP_TIME)
-                continue
+                if self.had_error:
+                    self._handle_error()
+                    continue
 
-            if self.had_error:
-                self.handle_error()
-                self.had_error = False
+                try:
+                    value = self.sensor.read()
+                    value["measuredAt"] = utils.get_instant()
+                    mqtt.send_data(value, self.sensor)
+                    self.logger.debug("Leitura realizada com sucesso", extra={"value": value})
 
-            try:
-                value = self.sensor.read()
-                mqtt_client.send_data(value, self.sensor)
+                except SensorError as e:
+                    self.had_error = True
+                    self.logger.error("Erro na leitura do sensor", extra={"error": str(e)})
+                    send_sensor_error(message=str(e), sensor_id=self.sensor.api_id)
 
-                self.logger.debug(
-                    "Leitura realizada com sucesso",
-                    extra={"value": value}
-                )
+                except Exception:
+                    self.had_error = True
+                    self.logger.exception("Erro inesperado durante leitura do sensor")
+                    send_sensor_error(
+                        message="Erro inesperado ao tentar realizar leitura no sensor.",
+                        sensor_id=self.sensor.api_id,
+                    )
 
-            except SensorError as e:
-                self.had_error = True
-                self.logger.error(
-                    "Erro na leitura do sensor",
-                    extra={"error": str(e)}
-                )
-                send_sensor_error(
-                    message=str(e),
-                    sensor_id=self.sensor.api_id,
-                )
+            time.sleep(SENSOR_SLEEP_TIME)  # fora do lock
 
-            except Exception:
-                self.had_error = True
-                self.logger.exception(
-                    "Erro inesperado durante leitura do sensor"
-                )
-                send_sensor_error(
-                    message="Erro inesperado ao tentar realizar leitura no sensor.",
-                    sensor_id=self.sensor.api_id,
-                )
+        self.logger.info("Worker finalizado")  # fora do while
 
-            time.sleep(SENSOR_SLEEP_TIME)
 
-        self.logger.debug("Worker finalizado")
+    def initialize_sensor(self):
+        if not self.sensor.probe():
+            self.logger.error("Sensor {self.sensor.model} não respondeu a verificação da configuração dos pinos.")
+            send_sensor_error(
+                message=(
+                    f"Sensor {self.sensor.model} não respondeu a verificação da configuração dos pinos. "
+                    "Verifique a conexão física, configuração dos pinos e disponibilidade do hardware. "
+                    "O sistema continuará tentando realizar leituras com o sensor mesmo falhando."
+                ),
+                sensor_id=self.sensor.api_id,
+            )
 
-    def _handle_commands(self):
-        try:
-            command = self.commands.get_nowait()
-        except queue.Empty:
-            return
-
-        self.logger.debug("Comando recebido", extra={"command": command.name})
-
-        match command:
-            case Command.START:
-                self.running = True
-                self.logger.info("Sensor iniciado")
-
-            case Command.STOP | Command.SHUTDOWN:
-                self.logger.info("Encerrando sensor")
-                self.running = False
-                self._stop_requested = True
-                self.sensor.shutdown()
-
-            case Command.RELOAD:
-                self.logger.warning("Recarregando sensor")
-                self._reload_sensor()
-
-            case _:
-                self.logger.warning("Comando desconhecido", extra={"command": command})
 
     def _reload_sensor(self):
         try:
-            self.sensor.is_initialized = False
             self.sensor.setup()
             self.logger.info("Sensor reinicializado com sucesso")
 
         except Exception:
             self.logger.exception("Falha ao reinicializar o sensor")
 
-    def handle_error(self):
+    def _handle_error(self):
         self.logger.warning("Tratando erro do sensor")
+        self.had_error = False  # erro sendo tratado aqui
 
-        if not self.sensor.probe():
-            self.logger.warning("Sensor não respondeu ao probe, tentando reload")
-            self._reload_sensor()
-            time.sleep(SENSOR_ERROR_SLEEP_TIME)
+        if self.sensor.probe():
+            self.logger.info("Sensor respondeu ao probe — continuando")
+            return
+
+        self.logger.warning("Sensor não respondeu ao probe — tentando reload")
+        self._reload_sensor()
+        time.sleep(SENSOR_ERROR_SLEEP_TIME)
