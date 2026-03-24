@@ -16,3 +16,4 @@ device_id
 
 ./logs
 /logs/
+/.env
