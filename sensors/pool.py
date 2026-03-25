@@ -1,7 +1,7 @@
 from typing import Dict
 from api import client as api_client
 from logs import get_logger
-from sensors.creator import sensor_creator
+from sensors.creator import sensor_creator, SensorCreator
 from sensors.drivers.mock import MockSensor
 from sensors.runner import SensorRunner
 
@@ -50,13 +50,15 @@ class SensorPool:
                 e,
                 sensor_data,
             )
-        except Exception:
+        except Exception as e:
             logger.error(
                 "Erro inesperado ao processar sensor | data=%s",
                 sensor_data,
             )
+            logger.debug(f"Erro: {e}")
 
         return None
+
 
     def _add_runner(self, sensor_id: int, sensor_data: dict):
         logger.info("Adicionando runner para sensor %s", sensor_id)
