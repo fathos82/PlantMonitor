@@ -42,6 +42,7 @@ def _register_new_device(path: Path) -> str:
         "name": "Sem Nome",  # TODO: tornar configurável via settings
         "hostname": socket.gethostname(),
     }
+    print(payload)
 
     api_client.register_device(device_uuid, payload)
 
