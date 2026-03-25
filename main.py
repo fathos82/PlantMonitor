@@ -17,12 +17,12 @@ def device_watcher(device_uuid: str):
 
 
 def main():
-    # device_uuid = device_identity.load_or_create()
+    device_uuid = device_identity.load_or_create()
     mqtt.connect()
 
     device_thread = threading.Thread(
         target=device_watcher,
-        args=(None,),
+        args=(device_uuid,),
         daemon=True,
     )
     device_thread.start()
