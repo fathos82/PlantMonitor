@@ -4,7 +4,7 @@ import pkgutil
 from pathlib import Path
 from logs import get_logger
 
-import lm35dzt
+from sensors.drivers import lm35dzt
 logger = get_logger("DRIVERS")
 
 _drivers_path = str(Path(__file__).parent)
