@@ -123,10 +123,10 @@ class LM35DZTemperatureSensorAdafruit(AbstractSensor):
 
         voltage_v = self._channel.voltage
 
-        # Clamp para evitar temperaturas negativas por ruído elétrico
-        if voltage_v < 0:
-            logger.debug("Tensão negativa (%.4fV) clampada para 0", voltage_v)
-            voltage_v = 0.0
+        # # Clamp para evitar temperaturas negativas por ruído elétrico
+        # if voltage_v < 0:
+        #     logger.debug("Tensão negativa (%.4fV) clampada para 0", voltage_v)
+        #     voltage_v = 0.0
 
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
 
