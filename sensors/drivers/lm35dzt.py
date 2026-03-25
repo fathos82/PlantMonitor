@@ -1,13 +1,15 @@
 from typing import Dict
 import busio
-import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
+import adafruit_ads1x15.ads1115 as ADS
 from adafruit_platformdetect import board
 
 from errors import SensorSetupError
 from logs import get_logger
 from sensors.base import AbstractSensor, SensorCapability
 from utils import get_instant
+
+
 
 logger = get_logger("SENSOR", sub="LM35DZ_ADAFRUIT")
 
