@@ -41,6 +41,7 @@ from typing import Type, TypeVar
 E = TypeVar("E", bound=Enum)
 class SensorModel(str, Enum):
     HC_SR04 = "HC-SR04"
+    LM35DZ="LM35DZ"
     BME280 = "BME280"
     DHT11 = "DHT11"
     DHT22 = "DHT22"
