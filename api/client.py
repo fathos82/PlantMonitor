@@ -12,7 +12,7 @@ def register_device(device_uuid: str, payload: dict) -> None:
     Registra o device na API.
     Levanta SystemExit se a comunicação falhar — sem device registrado não há operação.
     """
-    logger.debug("Enviando dados do dispositivo para a API")
+    logger.info("Enviando dados do dispositivo para a API")
 
     try:
         response = requests.post(DEVICE_API_URL, json=payload, timeout=5)
