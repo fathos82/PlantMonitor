@@ -12,16 +12,14 @@ from utils import get_instant
 logger = get_logger("SENSOR", sub="LM35DZ_ADAFRUIT")
 
 import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.ads1x15 import P0, P1, P2, P3
+import adafruit_ads1x15.ads1115 as ADS
 
 _MUX = {
-    0: P0,
-    1: P1,
-    2: P2,
-    3: P3,
-
+    0: ADS.ADS1115.P0,
+    1: ADS.ADS1115.P1,
+    2: ADS.ADS1115.P2,
+    3: ADS.ADS1115.P3,
 }
-
 _MV_PER_CELSIUS = 10.0
 
 
