@@ -1,49 +1,40 @@
-import struct
-import time
 from typing import Dict
 
-import smbus2
+import board
+import busio
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 
-from errors import SensorSetupError, SensorTimeoutError
+from errors import SensorSetupError
 from logs import get_logger
 from sensors.base import AbstractSensor, SensorCapability
 from utils import get_instant
 
-logger = get_logger("SENSOR", sub="LM35DZ")
+logger = get_logger("SENSOR", sub="LM35DZ_ADAFRUIT")
 
-# ── Registradores do ADS1115 ───────────────────────────────────────────────
-_REG_CONVERSION = 0x00
-_REG_CONFIG     = 0x01
-
-# Bits do registrador de configuração (16-bit)
-_OS_SINGLE   = 0x8000  # Inicia conversão single-shot
-_MODE_SINGLE = 0x0100  # Modo single-shot
-
-# Multiplexador: canal single-ended (AINx vs GND)
 _MUX = {
-    0: 0x4000,  # AIN0
-    1: 0x5000,  # AIN1
-    2: 0x6000,  # AIN2
-    3: 0x7000,  # AIN3
+    0: ADS.P0,
+    1: ADS.P1,
+    2: ADS.P2,
+    3: ADS.P3,
 }
 
-# PGA ±6.144 V → FSR = 6.144 V → 1 LSB ≈ 187.5 µV
-# Com 5V e LM35DZ saindo no máximo ~1V (100°C), ±6.144V cobre com folga
-_PGA_6144 = 0x0000
-_FSR_6144 = 6.144   # V
-
-# Data rate: 128 SPS (padrão — ~8 ms por conversão)
-_DR_128SPS = 0x0080
-
-# Timeout para aguardar fim da conversão single-shot
-_CONVERSION_TIMEOUT_S = 0.1
-
-# Sensibilidade do LM35DZ: 10 mV/°C
 _MV_PER_CELSIUS = 10.0
 
 
-class LM35DZTemperatureSensor(AbstractSensor):
-    sensor_name = "Analog Temperature Sensor"
+class LM35DZTemperatureSensorAdafruit(AbstractSensor):
+    """
+    Wrapper da implementação LM35DZ usando a biblioteca
+    Adafruit CircuitPython ADS1x15 via Blinka.
+
+    Dependências:
+        pip install adafruit-blinka adafruit-circuitpython-ads1x15
+
+    Funcionalmente equivalente a LM35DZTemperatureSensor (smbus2),
+    mas delega toda a comunicação I2C com o ADS1115 para a Adafruit.
+    """
+
+    sensor_name = "Analog Temperature Sensor (Adafruit)"
     model = "LM35DZ"
     capabilities = ["temperature"]
     interface = "I2C"
@@ -51,8 +42,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
     def configure(self, **params) -> None:
         """
         Parâmetros esperados:
-            - i2c_bus (int)    : Barramento I2C do Raspberry Pi (padrão: 1 → /dev/i2c-1)
-            - i2c_address (int): Endereço I2C do ADS1115 (padrão: 0x48, pino ADDR → GND)
+            - i2c_address (int): Endereço I2C do ADS1115 (padrão: 0x48, ADDR → GND)
             - adc_channel (int): Canal do ADS1115 onde o LM35DZ está ligado (padrão: 0)
 
         Endereços disponíveis conforme pino ADDR do ADS1115:
@@ -61,7 +51,6 @@ class LM35DZTemperatureSensor(AbstractSensor):
             ADDR → SDA : 0x4A
             ADDR → SCL : 0x4B
         """
-        self.i2c_bus     = int(params.get("i2c_bus", 1))
         self.i2c_address = int(params.get("i2c_address", 0x48))
         self.adc_channel = int(params.get("adc_channel", 0))
 
@@ -69,8 +58,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             raise ValueError(f"adc_channel deve ser 0–3, recebido: {self.adc_channel}")
 
         logger.debug(
-            "I2C: (bus=%s, address=0x%02X, channel=%s)",
-            self.i2c_bus,
+            "I2C: (address=0x%02X, channel=%s)",
             self.i2c_address,
             self.adc_channel,
         )
@@ -79,8 +67,9 @@ class LM35DZTemperatureSensor(AbstractSensor):
         logger.info("Iniciando setup do sensor")
 
         try:
-            self._bus = smbus2.SMBus(self.i2c_bus)
-            time.sleep(0.05)
+            i2c = busio.I2C(board.SCL, board.SDA)
+            self._ads = ADS.ADS1115(i2c, address=self.i2c_address)
+            self._channel = AnalogIn(self._ads, _MUX[self.adc_channel])
 
             self.is_initialized = True
             logger.info("Sensor inicializado com sucesso")
@@ -93,16 +82,15 @@ class LM35DZTemperatureSensor(AbstractSensor):
             ) from exc
 
         except Exception as exc:
-            logger.exception("Erro ao abrir barramento I2C")
+            logger.exception("Erro ao inicializar ADS1115 via Adafruit")
             raise SensorSetupError(
-                "Falha ao configurar barramento I2C do sensor.",
+                "Falha ao configurar o sensor via biblioteca Adafruit.",
                 sensor_id=self.api_id,
             ) from exc
 
     def probe(self) -> bool:
         """
-        Verifica se o ADS1115 responde no endereço I2C configurado
-        tentando ler o registrador de configuração.
+        Verifica se o ADS1115 responde tentando ler a tensão do canal.
         """
         logger.debug("Executando probe do sensor")
 
@@ -111,45 +99,39 @@ class LM35DZTemperatureSensor(AbstractSensor):
             self.setup()
 
         try:
-            self._bus.read_i2c_block_data(self.i2c_address, _REG_CONFIG, 2)
+            _ = self._channel.voltage
             logger.debug("Probe bem-sucedido")
             return True
 
-        except OSError:
-            logger.warning("Probe falhou — ADS1115 não encontrado em 0x%02X", self.i2c_address)
-            return False
-
         except Exception:
-            logger.exception("Erro inesperado durante probe")
+            logger.exception("Probe falhou")
             return False
 
     def read(self) -> Dict[str, float]:
         """
-        Dispara uma conversão single-shot no ADS1115, aguarda o resultado
-        e retorna a temperatura em graus Celsius.
+        Retorna a temperatura em graus Celsius.
+
+        A Adafruit já entrega a tensão convertida em volts via
+        channel.voltage — não é necessário lidar com raw ou FSR.
 
         Fórmula:
-            V_out (V) = raw × (FSR / 32767)
-            T (°C)    = (V_out × 1000) / 10
+            T (°C) = (voltage × 1000) / 10
         """
         if not self.is_initialized:
             logger.debug("Sensor não inicializado, executando setup()")
             self.setup()
 
-        raw = self._read_ads1115()
+        voltage_v = self._channel.voltage
 
-        # raw é signed 16-bit; valores negativos são ruído elétrico próximo
-        # ao GND — clampamos em 0 pois o LM35DZ com 5V não vai abaixo de 0°C
-        if raw < 0:
-            logger.debug("raw negativo (%s) clampado para 0", raw)
-            raw = 0
+        # Clamp para evitar temperaturas negativas por ruído elétrico
+        if voltage_v < 0:
+            logger.debug("Tensão negativa (%.4fV) clampada para 0", voltage_v)
+            voltage_v = 0.0
 
-        voltage_v     = raw * (_FSR_6144 / 32767.0)
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
 
         logger.debug(
-            "raw=%s  tensão=%.4fV  temperatura=%.2f°C",
-            raw,
+            "tensão=%.4fV  temperatura=%.2f°C",
             voltage_v,
             temperature_c,
         )
@@ -159,67 +141,17 @@ class LM35DZTemperatureSensor(AbstractSensor):
             "measuredAt": get_instant(),
         }
 
-    # ------------------------------------------------------------------ #
-    # I2C privado                                                          #
-    # ------------------------------------------------------------------ #
-
-    def _read_ads1115(self) -> int:
-        """
-        Configura e dispara uma conversão single-shot no ADS1115.
-        Aguarda o bit OS indicar conversão concluída e retorna
-        o valor bruto signed de 16 bits.
-        """
-        config = (
-            _OS_SINGLE
-            | _MUX[self.adc_channel]
-            | _PGA_6144
-            | _MODE_SINGLE
-            | _DR_128SPS
-        )
-
-        high_byte = (config >> 8) & 0xFF
-        low_byte  =  config       & 0xFF
-        self._bus.write_i2c_block_data(
-            self.i2c_address, _REG_CONFIG, [high_byte, low_byte]
-        )
-
-        # Polling do bit OS (bit 15): OS=1 indica conversão concluída
-        deadline = time.time() + _CONVERSION_TIMEOUT_S
-        while True:
-            data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONFIG, 2)
-            if data[0] & 0x80:
-                break
-            if time.time() > deadline:
-                raise SensorTimeoutError(
-                    "Timeout aguardando conversão do ADS1115",
-                    sensor_id=self.api_id,
-                )
-            time.sleep(0.001)
-
-        # Lê o registrador de conversão: 2 bytes big-endian signed
-        data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONVERSION, 2)
-        return struct.unpack(">h", bytes(data))[0]
-
-    # ------------------------------------------------------------------ #
-    # Identidade                                                           #
-    # ------------------------------------------------------------------ #
-
     @property
     def local_id(self) -> str:
         local_id = (
             f"temperature:lm35dz"
-            f":i2c{self.i2c_bus}"
             f":0x{self.i2c_address:02X}"
             f":{self.adc_channel}"
         )
         logger.debug("local_id gerado: %s", local_id)
         return local_id
 
-    # ------------------------------------------------------------------ #
-    # Ciclo de vida                                                        #
-    # ------------------------------------------------------------------ #
-
     def shutdown(self) -> None:
         logger.info("Desligando sensor...")
-        if hasattr(self, "_bus"):
-            self._bus.close()
+        if hasattr(self, "_ads"):
+            self._ads.i2c_device.i2c.deinit()
