@@ -14,10 +14,7 @@ class SensorPool:
 
     def discover(self, device_uuid: str):
 
-        sensor = MockSensor()
-        runner = SensorRunner(sensor)
-        self._runners[1] = runner
-        runner.start()
+
 
         logger.info("Descoberta de sensores iniciada")
 
