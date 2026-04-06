@@ -28,6 +28,7 @@ LOG_RULES = {
     "CAMERA": logging.DEBUG,
     "API_CLIENT": logging.DEBUG,
     "MQTT": logging.DEBUG,
+    "PUBLISHER": logging.DEBUG,
 }
 
 
