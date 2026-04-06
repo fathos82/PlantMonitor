@@ -142,7 +142,6 @@ class YL69SoilMoistureSensor(AbstractSensor):
 
         return {
             SensorCapability.HUMIDITY: moisture,
-            "measuredAt": get_instant(),
         }
 
     # ------------------------------------------------------------------ #

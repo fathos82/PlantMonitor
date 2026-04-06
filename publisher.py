@@ -31,7 +31,6 @@ class Publisher:
                     batch = SensorReadingBatch()
                     batch.base_timestamp = int(time.time() * 1000)
                     self.batches[topic] = batch
-
                 batch = self.batches[topic]
                 sensor_read = batch.readings.add()
 
@@ -42,9 +41,9 @@ class Publisher:
                 sensor_read.delta_ms = agora_ms - batch.base_timestamp
 
                 if len(batch.readings) >= BATCH_SIZE:
+                    logger.debug("Publishing topic %s", topic)
                     payload = batch.SerializeToString()
                     self._client.publish(topic, payload)
-
                     logger.debug("Publicado em %s (%d bytes)", topic, len(payload))
                     del self.batches[topic]
 
