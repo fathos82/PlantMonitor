@@ -42,7 +42,7 @@ class SensorPool:
             if sensor_id not in self._runners:
                 self._add_runner(sensor_id, sensor_data)
             else:
-                pass
+                self._update_runner(sensor_id, sensor_data)
 
             return sensor_id
 
