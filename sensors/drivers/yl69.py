@@ -40,7 +40,7 @@ _V_WET_DEFAULT = 0.5   # V — solo saturado (resistência mínima)
 class YL69SoilMoistureSensor(AbstractSensor):
     sensor_name = "Soil Moisture Sensor"
     model = SensorModel.YL_69
-    capabilities = ["humidity"]
+    capabilities = [SensorCapability.HUMIDITY]
     interface = "I2C"
 
     def configure(self, **params) -> None:
