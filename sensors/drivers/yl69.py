@@ -6,7 +6,7 @@ import smbus2
 
 from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
-from sensors.base import AbstractSensor, SensorCapability
+from sensors.base import AbstractSensor, SensorCapability, SensorModel
 from utils import get_instant
 
 logger = get_logger("SENSOR", sub="YL69")
@@ -39,7 +39,7 @@ _V_WET_DEFAULT = 0.5   # V — solo saturado (resistência mínima)
 
 class YL69SoilMoistureSensor(AbstractSensor):
     sensor_name = "Soil Moisture Sensor"
-    model = "YL-69"
+    model = SensorModel.YL_69
     capabilities = ["humidity"]
     interface = "I2C"
 
