@@ -53,10 +53,10 @@ class YL69SoilMoistureSensor(AbstractSensor):
             - v_wet       (float) : Tensão em solo saturado para calibração (padrão: 0.5V)
         """
         self.i2c_bus     = int(params.get("i2c_bus", 1))
-        self.i2c_address = int(params.get("i2c_address", 0x48))
+        self.i2c_address = params.get("i2c_address", 0x48)
         if isinstance(self.i2c_address, str):
             self.i2c_address = int(self.i2c_address, 0)
-        self.adc_channel = int(params.get("adc_channel", 1))
+        self.adc_channel = int(params.get("adc_channel", 0))
         self.v_dry       = float(params.get("v_dry", _V_DRY_DEFAULT))
         self.v_wet       = float(params.get("v_wet", _V_WET_DEFAULT))
 
