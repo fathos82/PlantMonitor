@@ -1,7 +1,7 @@
 import random
 from typing import Dict
 
-from sensors.base import AbstractSensor
+from sensors.base import AbstractSensor, SensorModel, SensorCapability
 
 
 class MockSensor(AbstractSensor):
@@ -10,7 +10,7 @@ class MockSensor(AbstractSensor):
     Não requer hardware — retorna valores aleatórios.
     """
     sensor_name = "Mock Sensor"
-    model = "MOCK"
+    model = SensorModel.MOCK
     api_id = 1
 
     @property
@@ -29,12 +29,12 @@ class MockSensor(AbstractSensor):
     def health(self) -> bool:
         return True
 
-    def read(self) -> Dict[str, float]:
-        return {"temperature": random.uniform(20.0, 35.0)}
+    def read(self) -> Dict[SensorCapability, float]:
+        return {SensorCapability.MOCK: random.uniform(34.3, 35.0)}
 
     @property
     def capabilities(self):
-        return ["temperature"]
+        return [SensorCapability.MOCK]
 
     def shutdown(self) -> None:
         pass

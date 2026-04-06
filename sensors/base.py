@@ -39,9 +39,12 @@ from typing import Type, TypeVar
 
 
 E = TypeVar("E", bound=Enum)
+from enum import Enum
+
 class SensorModel(str, Enum):
+    MOCK = "MOCK"
     HC_SR04 = "HC-SR04"
-    LM35DZ="LM35DZ"
+    LM35DZ = "LM35DZ"
     BME280 = "BME280"
     DHT11 = "DHT11"
     DHT22 = "DHT22"
@@ -50,6 +53,21 @@ class SensorModel(str, Enum):
     MPU6050 = "MPU6050"
     GENERIC_GPIO = "GENERIC_GPIO"
 
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().upper().replace("-", "_")
+
+            for member in cls:
+                if member.value.replace("-", "_") == normalized:
+                    return member
+
+        # 👇 erro descritivo
+        valid_values = [m.value for m in cls]
+        raise ValueError(
+            f"SensorModel inválido: '{value}'. "
+            f"Valores válidos: {valid_values}"
+        )
     @classmethod
     def _missing_(cls: Type[E], value: object) -> E:
         if value is None:
@@ -91,7 +109,7 @@ class AbstractSensor(ABC):
 
     # ===== Metadados =====
     sensor_name: Optional[str] = None
-    model: Optional[str] = None
+    model: Optional[SensorModel] = None
     interface = "GPIO"       # I2C, GPIO, USB, 1WIRE, SPI
 
     # ===== Ciclo de vida =====
@@ -109,7 +127,7 @@ class AbstractSensor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def read(self) ->  Dict[str, float]:
+    def read(self) ->  Dict[SensorCapability, float]:
         """Retorna leitura atual do sensor"""
         raise NotImplementedError
 
@@ -128,7 +146,7 @@ class AbstractSensor(ABC):
     def to_dict(self) -> dict:
         return {
             "apiId": self.api_id,
-            "localId": self.local_id,
+            # "localId": self.local_id,
             "model": self.model,
             "interface": self.interface,
             "capabilities": self.capabilities,

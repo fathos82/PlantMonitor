@@ -9,6 +9,7 @@ class SensorCreator:
 
     def create(self, sensor_data: dict):
         try:
+
             sensor_type = SensorModel(sensor_data["model"])
         except ValueError:
             raise ValueError(f"Modelo inválido recebido da API: {sensor_data['model']}")

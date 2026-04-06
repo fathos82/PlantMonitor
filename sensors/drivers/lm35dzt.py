@@ -6,7 +6,7 @@ import smbus2
 
 from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
-from sensors.base import AbstractSensor, SensorCapability
+from sensors.base import AbstractSensor, SensorCapability, SensorModel
 from utils import get_instant
 
 logger = get_logger("SENSOR", sub="LM35DZ")
@@ -44,8 +44,8 @@ _MV_PER_CELSIUS = 10.0
 
 class LM35DZTemperatureSensor(AbstractSensor):
     sensor_name = "Analog Temperature Sensor"
-    model = "LM35DZ"
-    capabilities = ["temperature"]
+    model = SensorModel.LM35DZ
+    capabilities = [SensorCapability.TEMPERATURE]
     interface = "I2C"
 
     def configure(self, **params) -> None:
@@ -123,7 +123,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             logger.exception("Erro inesperado durante probe")
             return False
 
-    def read(self) -> Dict[str, float]:
+    def read(self) -> Dict[SensorCapability, float]:
         """
         Dispara uma conversão single-shot no ADS1115, aguarda o resultado
         e retorna a temperatura em graus Celsius.

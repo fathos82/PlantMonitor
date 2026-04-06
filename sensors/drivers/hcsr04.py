@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 
 from errors import SensorSetupError, SensorTimeoutError
 from logs import get_logger
-from sensors.base import AbstractSensor, SensorCapability
+from sensors.base import AbstractSensor, SensorCapability, SensorModel
 from utils import get_instant
 
 logger = get_logger("SENSOR", sub="HC_SR04")
@@ -13,8 +13,8 @@ logger = get_logger("SENSOR", sub="HC_SR04")
 
 class HCSR04DistanceSensor(AbstractSensor):
     sensor_name = "Ultrasonic Distance Sensor"
-    model = "HC-SR04"
-    capabilities = ["distance"]
+    model = SensorModel.HC_SR04
+    capabilities = [SensorCapability.DISTANCE]
 
 
 

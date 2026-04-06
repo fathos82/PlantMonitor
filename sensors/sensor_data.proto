@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message SensorReading {
+  int32 delta_ms = 1; // diferença em ms desde o timestamp base
+  float value    = 2;
+}
+
+message SensorReadingBatch {
+  int64            base_timestamp = 1; // timestamp da primeira leitura
+  repeated SensorReading readings = 2; // cada leitura só carrega o delta
+}

@@ -1,24 +1,24 @@
 import threading
 import time
 
-import utils
-from api import mqtt
+from api.client import send_sensor_error
 from errors import SensorError
 from logs import get_logger
 from sensors.base import AbstractSensor
 from settings import SENSOR_SLEEP_TIME, SENSOR_ERROR_SLEEP_TIME
-from api.client import send_sensor_error
 
 
 class SensorRunner(threading.Thread):
 
-    def __init__(self, sensor: AbstractSensor):
+    def __init__(self, sensor: AbstractSensor, publisher):
         super().__init__(daemon=True)
 
         self.sensor = sensor
+        self._publisher = publisher
+        self._lock = threading.Lock()
         self._stop_requested = False
         self.had_error = False
-        self._lock = threading.Lock()
+
         self.logger = get_logger(
             "SENSOR_WORKER",
             sub=sensor.model,
@@ -26,6 +26,8 @@ class SensorRunner(threading.Thread):
         )
 
         self.logger.debug("Worker criado")
+
+    # ===== Interface pública =====
 
     def stop(self):
         self.logger.info("Encerrando sensor")
@@ -44,10 +46,21 @@ class SensorRunner(threading.Thread):
             self.sensor.configure(**kwargs)
             self.sensor.setup()
 
+    # ===== Loop principal =====
+
     def run(self):
         self.logger.info("Worker iniciado")
 
-        self.initialize_sensor()
+        if not self.sensor.probe():
+            self.logger.error("Sensor não respondeu na inicialização")
+            send_sensor_error(
+                message=(
+                    f"Sensor {self.sensor.model} não respondeu na inicialização. "
+                    "Verifique a conexão física, configuração dos pinos e disponibilidade do hardware. "
+                    "O sistema continuará tentando nas próximas leituras."
+                ),
+                sensor_id=self.sensor.api_id,
+            )
 
         while not self._stop_requested:
             with self._lock:
@@ -60,8 +73,8 @@ class SensorRunner(threading.Thread):
 
                 try:
                     value = self.sensor.read()
-                    value["measuredAt"] = utils.get_instant()
-                    mqtt.send_data(value, self.sensor)
+                    self._publisher.publish(value, self.sensor)
+
                     self.logger.debug("Leitura realizada com sucesso", extra={"value": value})
 
                 except SensorError as e:
@@ -77,35 +90,22 @@ class SensorRunner(threading.Thread):
                         sensor_id=self.sensor.api_id,
                     )
 
-            time.sleep(SENSOR_SLEEP_TIME)  # fora do lock
+            time.sleep(SENSOR_SLEEP_TIME)
 
-        self.logger.info("Worker finalizado")  # fora do while
+        self.logger.info("Worker finalizado")
 
-
-    def initialize_sensor(self):
-        if not self.sensor.probe():
-            self.logger.error("Sensor {self.sensor.model} não respondeu a verificação da configuração dos pinos.")
-            send_sensor_error(
-                message=(
-                    f"Sensor {self.sensor.model} não respondeu a verificação da configuração dos pinos. "
-                    "Verifique a conexão física, configuração dos pinos e disponibilidade do hardware. "
-                    "O sistema continuará tentando realizar leituras com o sensor mesmo falhando."
-                ),
-                sensor_id=self.sensor.api_id,
-            )
-
+    # ===== Internos =====
 
     def _reload_sensor(self):
         try:
             self.sensor.setup()
             self.logger.info("Sensor reinicializado com sucesso")
-
         except Exception:
             self.logger.exception("Falha ao reinicializar o sensor")
 
     def _handle_error(self):
         self.logger.warning("Tratando erro do sensor")
-        self.had_error = False  # erro sendo tratado aqui
+        self.had_error = False
 
         if self.sensor.probe():
             self.logger.info("Sensor respondeu ao probe — continuando")
