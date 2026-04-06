@@ -67,7 +67,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             self.i2c_address = int(i2c_address_param, 16)
         else:
             self.i2c_address = int(i2c_address_param)
-            self.adc_channel = int(params.get("adc_channel", 0))
+        self.adc_channel = int(params.get("adc_channel", 0))
 
         if self.adc_channel not in _MUX:
             raise ValueError(f"adc_channel deve ser 0–3, recebido: {self.adc_channel}")
