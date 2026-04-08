@@ -24,14 +24,14 @@ import os
 import logging
 
 DEFAULT_LOG_RULES = {
-    "SYSTEM": logging.INFO,
-    "SENSOR_POOL": logging.INFO,
-    "SENSOR_WORKER": logging.INFO,
-    "DEVICE": logging.INFO,
-    "CAMERA": logging.INFO,
-    "API_CLIENT": logging.INFO,
-    "MQTT": logging.INFO,
-    "PUBLISHER": logging.INFO,
+    "SYSTEM": logging.DEBUGs,
+    "SENSOR_POOL": logging.DEBUG,
+    "SENSOR_WORKER": logging.DEBUG,
+    "DEVICE": logging.DEBUG,
+    "CAMERA": logging.DEBUG,
+    "API_CLIENT": logging.DEBUG,
+    "MQTT": logging.DEBUG,
+    "PUBLISHER": logging.DEBUG,
 }
 
 def parse_log_level(level_str):

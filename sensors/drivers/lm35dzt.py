@@ -185,7 +185,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         self._bus.write_i2c_block_data(
             self.i2c_address, _REG_CONFIG, [high_byte, low_byte]
         )
-        time.sleep(0.09)
+        time.sleep(0.010)
 
         # Polling do bit OS (bit 15): OS=1 indica conversão concluída
         deadline = time.time() + _CONVERSION_TIMEOUT_S
