@@ -3,7 +3,6 @@ from typing import Any, List
 
 
 class Filter(ABC):
-
     def filter(self, data:float) -> float:
         pass
 
