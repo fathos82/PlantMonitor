@@ -127,45 +127,101 @@ class LM35DZTemperatureSensor(AbstractSensor):
             return False
 
     def read(self) -> Dict[SensorCapability, float]:
+        """
+        Dispara uma conversão single-shot no ADS1115, aguarda o resultado
+        e retorna a temperatura em graus Celsius.
+
+        Fórmula:
+            V_out (V) = raw × (FSR / 32767)
+            T (°C)    = (V_out × 1000) / 10
+        """
         if not self.is_initialized:
             logger.debug("Sensor não inicializado, executando setup()")
             self.setup()
 
-        print("\n========== READ START ==========")
-        print(self.__str__())
+        print("\n" + "=" * 50)
+        print(f"[READ] Canal ADC : {self.adc_channel} | Endereço: 0x{self.i2c_address:02X} | FSR: ±{_FSR_2048}V")
 
-        print("\n--- TESTE MÉDIA (5 leituras) ---")
-        values = []
-        for i in range(5):
-            v = self._read_ads1115()
-            print(f"RAW[{i}]: {v}")
-            values.append(v)
-        avg = sum(values) / len(values)
-        print(f"MÉDIA RAW: {avg}")
+        # ── Coleta de amostras brutas para diagnóstico ─────────────────────
+        NUM_SAMPLES = 7
+        samples = []
+        print(f"[AMOSTRAS] Coletando {NUM_SAMPLES} leituras brutas consecutivas:")
 
-        print("\n--- LEITURA FINAL ---")
+        for i in range(NUM_SAMPLES):
+            raw_i = self._read_ads1115()
+            v_i = raw_i * (_FSR_2048 / 32767.0)
+            t_i = (v_i * 1000.0) / _MV_PER_CELSIUS
+            samples.append(raw_i)
+            print(f"  [{i + 1}/{NUM_SAMPLES}] raw={raw_i:6d}  tensão={v_i:.4f}V  temp={t_i:.2f}°C")
+            time.sleep(0.012)  # pausa > período de conversão (128 SPS = ~7.8 ms)
+
+        # ── Estatísticas ───────────────────────────────────────────────────
+        raw_min = min(samples)
+        raw_max = max(samples)
+        raw_range = raw_max - raw_min
+        raw_mean = sum(samples) / len(samples)
+
+        lsb_to_celsius = (_FSR_2048 / 32767.0) * 1000.0 / _MV_PER_CELSIUS
+
+        print(f"[ESTATÍSTICAS]")
+        print(f"  Mínimo : raw={raw_min:6d}  → {raw_min * lsb_to_celsius:.2f}°C")
+        print(f"  Máximo : raw={raw_max:6d}  → {raw_max * lsb_to_celsius:.2f}°C")
+        print(f"  Média  : raw={raw_mean:7.1f}  → {raw_mean * lsb_to_celsius:.2f}°C")
+        print(f"  Range  : {raw_range} LSBs  →  variação de {raw_range * lsb_to_celsius:.2f}°C entre amostras")
+
+        # ── Diagnóstico de flutuação ───────────────────────────────────────
+        FLUCT_WARN_LSB = 10  # ~0.06°C com PGA±2.048V — acima disso é suspeito
+        FLUCT_CRIT_LSB = 50  # ~0.31°C — acima disso é problema claro
+
+        if raw_range >= FLUCT_CRIT_LSB:
+            print(f"[!! FLUTUAÇÃO CRÍTICA !!] {raw_range} LSBs — verifique:")
+            print(f"  → GND do LM35DZ e GND do ADS1115 no mesmo ponto")
+            print(f"  → Capacitor 100nF entre VDD e GND do ADS1115")
+            print(f"  → Cabo analógico longo ou sem blindagem")
+            print(f"  → Fonte de alimentação instável")
+            logger.warning("Flutuação crítica detectada: range=%d LSBs (%.2f°C)", raw_range, raw_range * lsb_to_celsius)
+        elif raw_range >= FLUCT_WARN_LSB:
+            print(f"[! FLUTUAÇÃO ELEVADA] {raw_range} LSBs — ruído moderado presente")
+            logger.warning("Flutuação elevada: range=%d LSBs (%.2f°C)", raw_range, raw_range * lsb_to_celsius)
+        else:
+            print(f"[✓ ESTÁVEL] Range de {raw_range} LSBs dentro do esperado")
+
+        # ── Leitura final ──────────────────────────────────────────────────
         raw = self._read_ads1115()
-        print(f"RAW FINAL: {raw}")
+        print(f"[LEITURA FINAL] raw={raw}")
+
+        if raw < 0:
+            print(f"[⚠ RAW NEGATIVO] raw={raw} → ruído próximo ao GND, clampando para 0")
+            logger.warning("raw negativo (%s) clampado para 0 — possível problema de GND", raw)
+            raw = 0
 
         voltage_v = raw * (_FSR_2048 / 32767.0)
-        print(f"VOLTAGE: {voltage_v}")
-
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
-        print(f"TEMP_CALCULADA: {temperature_c}")
 
-        result = round(temperature_c, 2)
-        print(f"TEMP_FINAL (round): {result}")
+        print(f"[RESULTADO]  tensão={voltage_v:.4f}V  temperatura={temperature_c:.2f}°C")
+        print("=" * 50 + "\n")
 
-        print("========== READ END ==========\n")
+        logger.debug(
+            "raw=%s  tensão=%.4fV  temperatura=%.2f°C",
+            raw,
+            voltage_v,
+            temperature_c,
+        )
 
         return {
-            SensorCapability.TEMPERATURE: result,
+            SensorCapability.TEMPERATURE: round(temperature_c, 2),
             "measuredAt": get_instant(),
         }
+    # ------------------------------------------------------------------ #
+    # I2C privado                                                          #
+    # ------------------------------------------------------------------ #
 
     def _read_ads1115(self) -> int:
-        print("\n[ADS1115] Iniciando leitura")
-
+        """
+        Configura e dispara uma conversão single-shot no ADS1115.
+        Aguarda o bit OS indicar conversão concluída e retorna
+        o valor bruto signed de 16 bits.
+        """
         config = (
             _OS_SINGLE
             | _MUX[self.adc_channel]
@@ -174,56 +230,49 @@ class LM35DZTemperatureSensor(AbstractSensor):
             | _DR_128SPS
         )
 
-        print(f"[ADS1115] CONFIG: 0x{config:04X}")
-
         high_byte = (config >> 8) & 0xFF
         low_byte  =  config       & 0xFF
-
-        print(f"[ADS1115] WRITE BYTES: [{high_byte:#04x}, {low_byte:#04x}]")
-
         self._bus.write_i2c_block_data(
             self.i2c_address, _REG_CONFIG, [high_byte, low_byte]
         )
 
+        # Polling do bit OS (bit 15): OS=1 indica conversão concluída
         deadline = time.time() + _CONVERSION_TIMEOUT_S
-
         while True:
             data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONFIG, 2)
-            cfg = (data[0] << 8) | data[1]
-
-            print(f"[ADS1115] POLL CONFIG: 0x{cfg:04X}")
-
             if data[0] & 0x80:
-                print("[ADS1115] Conversão pronta")
                 break
-
             if time.time() > deadline:
-                print("[ADS1115] TIMEOUT!")
                 raise SensorTimeoutError(
                     "Timeout aguardando conversão do ADS1115",
                     sensor_id=self.api_id,
                 )
-
             time.sleep(0.001)
 
+        # Lê o registrador de conversão: 2 bytes big-endian signed
         data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONVERSION, 2)
-        print(f"[ADS1115] RAW BYTES: {data}")
+        return struct.unpack(">h", bytes(data))[0]
 
-        raw = struct.unpack(">h", bytes(data))[0]
-        print(f"[ADS1115] RAW CONVERTIDO: {raw}")
+    # ------------------------------------------------------------------ #
+    # Identidade                                                           #
+    # ------------------------------------------------------------------ #
 
-        return raw
-
-    def __str__(self) -> str:
-        return (
-            f"LM35DZTemperatureSensor(\n"
-            f"  sensor_name={self.sensor_name},\n"
-            f"  model={self.model},\n"
-            f"  interface={self.interface},\n"
-            f"  i2c_bus={getattr(self, 'i2c_bus', None)},\n"
-            f"  i2c_address=0x{getattr(self, 'i2c_address', 0):02X},\n"
-            f"  adc_channel={getattr(self, 'adc_channel', None)},\n"
-            f"  is_initialized={getattr(self, 'is_initialized', False)},\n"
-            f"  local_id={self.local_id if hasattr(self, 'i2c_bus') else None}\n"
-            f")"
+    @property
+    def local_id(self) -> str:
+        local_id = (
+            f"temperature:lm35dz"
+            f":i2c{self.i2c_bus}"
+            f":0x{self.i2c_address:02X}"
+            f":{self.adc_channel}"
         )
+        logger.debug("local_id gerado: %s", local_id)
+        return local_id
+
+    # ------------------------------------------------------------------ #
+    # Ciclo de vida                                                        #
+    # ------------------------------------------------------------------ #
+
+    def shutdown(self) -> None:
+        logger.info("Desligando sensor...")
+        if hasattr(self, "_bus"):
+            self._bus.close()
