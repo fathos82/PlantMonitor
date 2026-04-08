@@ -147,7 +147,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         #     logger.debug("raw negativo (%s) clampado para 0", raw)
         #     raw = 0
 
-        voltage_v     = raw * (_FSR_2048 / 32767.0)
+        voltage_v     = raw * (_FSR_0512 / 32767.0)
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
 
         logger.debug(
@@ -175,7 +175,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         config = (
             _OS_SINGLE
             | _MUX[self.adc_channel]
-            | _PGA_2048
+            | _PGA_0512
             | _MODE_SINGLE
             | _DR_128SPS
         )
