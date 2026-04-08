@@ -10,7 +10,6 @@ from sensors.base import AbstractSensor, SensorCapability, SensorModel
 from utils import get_instant
 
 logger = get_logger("SENSOR", sub="LM35DZ")
-
 # ── Registradores do ADS1115 ───────────────────────────────────────────────
 _REG_CONVERSION = 0x00
 _REG_CONFIG     = 0x01
@@ -27,11 +26,10 @@ _MUX = {
     3: 0x7000,  # AIN3
 }
 
-# PGA ±6.144 V → FSR = 6.144 V → 1 LSB ≈ 187.5 µV
-# Com 5V e LM35DZ saindo no máximo ~1V (100°C), ±6.144V cobre com folga
-_PGA_0512 = 0x0A00
-_FSR_0512 = 0.512
-
+# PGA ±4.096V → FSR = 4.096V → 1 LSB ≈ 125µV
+# Código simples de referência usava esta configuração e se mostrou estável
+_PGA_4096 = 0x0200
+_FSR_4096 = 4.096
 
 # Data rate: 128 SPS (padrão — ~8 ms por conversão)
 _DR_128SPS = 0x0080
@@ -148,7 +146,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         #     logger.debug("raw negativo (%s) clampado para 0", raw)
         #     raw = 0
 
-        voltage_v     = raw * (_FSR_0512 / 32767.0)
+        voltage_v     = raw * (_FSR_4096 / 32767.0)
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
 
         logger.debug(
@@ -176,7 +174,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         config = (
             _OS_SINGLE
             | _MUX[self.adc_channel]
-            | _PGA_0512
+            | _PGA_4096
             | _MODE_SINGLE
             | _DR_128SPS
         )
