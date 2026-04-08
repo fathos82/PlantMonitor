@@ -138,8 +138,11 @@ class LM35DZTemperatureSensor(AbstractSensor):
         if not self.is_initialized:
             logger.debug("Sensor não inicializado, executando setup()")
             self.setup()
-
+        print(self.__str__())
+        print("TESTE: ")
+        print(sum(self._read_ads1115() for _ in range(5)) / 5)
         raw = self._read_ads1115()
+        print("RAW: {}".format(raw))
 
         # raw é signed 16-bit; valores negativos são ruído elétrico próximo
         # ao GND — clampamos em 0 pois o LM35DZ com 5V não vai abaixo de 0°C
@@ -226,3 +229,17 @@ class LM35DZTemperatureSensor(AbstractSensor):
         logger.info("Desligando sensor...")
         if hasattr(self, "_bus"):
             self._bus.close()
+
+    def __str__(self) -> str:
+        return (
+            f"LM35DZTemperatureSensor(\n"
+            f"  sensor_name={self.sensor_name},\n"
+            f"  model={self.model},\n"
+            f"  interface={self.interface},\n"
+            f"  i2c_bus={getattr(self, 'i2c_bus', None)},\n"
+            f"  i2c_address=0x{getattr(self, 'i2c_address', 0):02X},\n"
+            f"  adc_channel={getattr(self, 'adc_channel', None)},\n"
+            f"  is_initialized={getattr(self, 'is_initialized', False)},\n"
+            f"  local_id={self.local_id if hasattr(self, 'i2c_bus') else None}\n"
+            f")"
+        )
