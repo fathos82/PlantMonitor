@@ -29,8 +29,8 @@ _MUX = {
 
 # PGA ±6.144 V → FSR = 6.144 V → 1 LSB ≈ 187.5 µV
 # Com 5V e LM35DZ saindo no máximo ~1V (100°C), ±6.144V cobre com folga
-_PGA_6144 = 0x0000
-_FSR_6144 = 6.144   # V
+_PGA_2048 = 0x0400
+_FSR_2048 = 2.048
 
 # Data rate: 128 SPS (padrão — ~8 ms por conversão)
 _DR_128SPS = 0x0080
@@ -49,34 +49,34 @@ class LM35DZTemperatureSensor(AbstractSensor):
     interface = "I2C"
 
     def configure(self, **params) -> None:
-        """
-        Parâmetros esperados:
-            - i2c_bus (int)    : Barramento I2C do Raspberry Pi (padrão: 1 → /dev/i2c-1)
-            - i2c_address (int): Endereço I2C do ADS1115 (padrão: 0x48, pino ADDR → GND)
-            - adc_channel (int): Canal do ADS1115 onde o LM35DZ está ligado (padrão: 0)
+            """
+            Parâmetros esperados:
+                - i2c_bus (int)    : Barramento I2C do Raspberry Pi (padrão: 1 → /dev/i2c-1)
+                - i2c_address (int): Endereço I2C do ADS1115 (padrão: 0x48, pino ADDR → GND)
+                - adc_channel (int): Canal do ADS1115 onde o LM35DZ está ligado (padrão: 0)
 
-        Endereços disponíveis conforme pino ADDR do ADS1115:
-            ADDR → GND : 0x48  (padrão)
-            ADDR → VDD : 0x49
-            ADDR → SDA : 0x4A
-            ADDR → SCL : 0x4B
-        """
-        self.i2c_bus     = int(params.get("i2c_bus", 1))
-        self.i2c_address  = params.get("i2c_address", 0x48)
-        if isinstance(self.i2c_address, str):
-            self.i2c_address = int(self.i2c_address, 16)
+            Endereços disponíveis conforme pino ADDR do ADS1115:
+                ADDR → GND : 0x48  (padrão)
+                ADDR → VDD : 0x49
+                ADDR → SDA : 0x4A
+                ADDR → SCL : 0x4B
+            """
+            self.i2c_bus     = int(params.get("i2c_bus", 1))
+            self.i2c_address  = params.get("i2c_address", 0x48)
+            if isinstance(self.i2c_address, str):
+                self.i2c_address = int(self.i2c_address, 0)
 
-        self.adc_channel = int(params.get("adc_channel", 0))
+            self.adc_channel = int(params.get("adc_channel", 0))
 
-        if self.adc_channel not in _MUX:
-            raise ValueError(f"adc_channel deve ser 0–3, recebido: {self.adc_channel}")
+            if self.adc_channel not in _MUX:
+                raise ValueError(f"adc_channel deve ser 0–3, recebido: {self.adc_channel}")
 
-        logger.debug(
-            "I2C: (bus=%s, address=0x%02X, channel=%s)",
-            self.i2c_bus,
-            self.i2c_address,
-            self.adc_channel,
-        )
+            logger.debug(
+                "I2C: (bus=%s, address=0x%02X, channel=%s)",
+                self.i2c_bus,
+                self.i2c_address,
+                self.adc_channel,
+            )
 
     def setup(self) -> None:
         logger.info("Iniciando setup do sensor")
