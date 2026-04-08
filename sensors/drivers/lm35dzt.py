@@ -28,8 +28,8 @@ _MUX = {
 
 # PGA ±4.096V → FSR = 4.096V → 1 LSB ≈ 125µV
 # Código simples de referência usava esta configuração e se mostrou estável
-_PGA_4096 = 0x0200
-_FSR_4096 = 4.096
+_PGA_4096 = 0x0600
+_FSR_4096 = 1.024
 
 # Data rate: 128 SPS (padrão — ~8 ms por conversão)
 _DR_128SPS = 0x0080
