@@ -139,67 +139,16 @@ class LM35DZTemperatureSensor(AbstractSensor):
             logger.debug("Sensor não inicializado, executando setup()")
             self.setup()
 
-        print("\n" + "=" * 50)
-        print(f"[READ] Canal ADC : {self.adc_channel} | Endereço: 0x{self.i2c_address:02X} | FSR: ±{_FSR_2048}V")
-
-        # ── Coleta de amostras brutas para diagnóstico ─────────────────────
-        NUM_SAMPLES = 7
-        samples = []
-        print(f"[AMOSTRAS] Coletando {NUM_SAMPLES} leituras brutas consecutivas:")
-
-        for i in range(NUM_SAMPLES):
-            raw_i = self._read_ads1115()
-            v_i = raw_i * (_FSR_2048 / 32767.0)
-            t_i = (v_i * 1000.0) / _MV_PER_CELSIUS
-            samples.append(raw_i)
-            print(f"  [{i + 1}/{NUM_SAMPLES}] raw={raw_i:6d}  tensão={v_i:.4f}V  temp={t_i:.2f}°C")
-            time.sleep(0.012)  # pausa > período de conversão (128 SPS = ~7.8 ms)
-
-        # ── Estatísticas ───────────────────────────────────────────────────
-        raw_min = min(samples)
-        raw_max = max(samples)
-        raw_range = raw_max - raw_min
-        raw_mean = sum(samples) / len(samples)
-
-        lsb_to_celsius = (_FSR_2048 / 32767.0) * 1000.0 / _MV_PER_CELSIUS
-
-        print(f"[ESTATÍSTICAS]")
-        print(f"  Mínimo : raw={raw_min:6d}  → {raw_min * lsb_to_celsius:.2f}°C")
-        print(f"  Máximo : raw={raw_max:6d}  → {raw_max * lsb_to_celsius:.2f}°C")
-        print(f"  Média  : raw={raw_mean:7.1f}  → {raw_mean * lsb_to_celsius:.2f}°C")
-        print(f"  Range  : {raw_range} LSBs  →  variação de {raw_range * lsb_to_celsius:.2f}°C entre amostras")
-
-        # ── Diagnóstico de flutuação ───────────────────────────────────────
-        FLUCT_WARN_LSB = 10  # ~0.06°C com PGA±2.048V — acima disso é suspeito
-        FLUCT_CRIT_LSB = 50  # ~0.31°C — acima disso é problema claro
-
-        if raw_range >= FLUCT_CRIT_LSB:
-            print(f"[!! FLUTUAÇÃO CRÍTICA !!] {raw_range} LSBs — verifique:")
-            print(f"  → GND do LM35DZ e GND do ADS1115 no mesmo ponto")
-            print(f"  → Capacitor 100nF entre VDD e GND do ADS1115")
-            print(f"  → Cabo analógico longo ou sem blindagem")
-            print(f"  → Fonte de alimentação instável")
-            logger.warning("Flutuação crítica detectada: range=%d LSBs (%.2f°C)", raw_range, raw_range * lsb_to_celsius)
-        elif raw_range >= FLUCT_WARN_LSB:
-            print(f"[! FLUTUAÇÃO ELEVADA] {raw_range} LSBs — ruído moderado presente")
-            logger.warning("Flutuação elevada: range=%d LSBs (%.2f°C)", raw_range, raw_range * lsb_to_celsius)
-        else:
-            print(f"[✓ ESTÁVEL] Range de {raw_range} LSBs dentro do esperado")
-
-        # ── Leitura final ──────────────────────────────────────────────────
         raw = self._read_ads1115()
-        print(f"[LEITURA FINAL] raw={raw}")
 
-        if raw < 0:
-            print(f"[⚠ RAW NEGATIVO] raw={raw} → ruído próximo ao GND, clampando para 0")
-            logger.warning("raw negativo (%s) clampado para 0 — possível problema de GND", raw)
-            raw = 0
+        # raw é signed 16-bit; valores negativos são ruído elétrico próximo
+        # ao GND — clampamos em 0 pois o LM35DZ com 5V não vai abaixo de 0°C
+        # if raw < 0:
+        #     logger.debug("raw negativo (%s) clampado para 0", raw)
+        #     raw = 0
 
-        voltage_v = raw * (_FSR_2048 / 32767.0)
+        voltage_v     = raw * (_FSR_2048 / 32767.0)
         temperature_c = (voltage_v * 1000.0) / _MV_PER_CELSIUS
-
-        print(f"[RESULTADO]  tensão={voltage_v:.4f}V  temperatura={temperature_c:.2f}°C")
-        print("=" * 50 + "\n")
 
         logger.debug(
             "raw=%s  tensão=%.4fV  temperatura=%.2f°C",
@@ -212,6 +161,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             SensorCapability.TEMPERATURE: round(temperature_c, 2),
             "measuredAt": get_instant(),
         }
+
     # ------------------------------------------------------------------ #
     # I2C privado                                                          #
     # ------------------------------------------------------------------ #
