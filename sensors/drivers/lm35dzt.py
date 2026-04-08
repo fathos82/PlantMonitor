@@ -64,7 +64,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
         self.i2c_bus     = int(params.get("i2c_bus", 1))
         self.i2c_address  = params.get("i2c_address", 0x48)
         if isinstance(self.i2c_address, str):
-            self.i2c_address = int(self.i2c_address, 0)
+            self.i2c_address = int(self.i2c_address, 16)
 
         self.adc_channel = int(params.get("adc_channel", 0))
 
