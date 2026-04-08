@@ -32,6 +32,7 @@ _MUX = {
 _PGA_0512 = 0x0A00
 _FSR_0512 = 0.512
 
+
 # Data rate: 128 SPS (padrão — ~8 ms por conversão)
 _DR_128SPS = 0x0080
 
@@ -185,7 +186,6 @@ class LM35DZTemperatureSensor(AbstractSensor):
         self._bus.write_i2c_block_data(
             self.i2c_address, _REG_CONFIG, [high_byte, low_byte]
         )
-        time.sleep(0.1)
 
         # Polling do bit OS (bit 15): OS=1 indica conversão concluída
         deadline = time.time() + _CONVERSION_TIMEOUT_S
@@ -198,7 +198,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
                     "Timeout aguardando conversão do ADS1115",
                     sensor_id=self.api_id,
                 )
-            # time.sleep(0.001)
+            time.sleep(0.001)
             # Lê o registrador de conversão: 2 bytes big-endian signed
         data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONVERSION, 2)
         return struct.unpack(">h", bytes(data))[0]
