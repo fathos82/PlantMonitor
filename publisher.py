@@ -21,6 +21,8 @@ class Publisher:
         self.filters:List[Filter] = []
         self.batches: Dict[str, SensorReadingBatch] = {}
 
+    def add_filter(self, filter: Filter) -> None:
+        self.filters.append(filter)
     def publish(self, data: dict, sensor: AbstractSensor):
         try:
             for capability in sensor.capabilities:
