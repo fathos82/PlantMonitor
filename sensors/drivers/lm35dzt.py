@@ -1,3 +1,45 @@
+import struct
+import time
+from typing import Dict
+
+import smbus2
+
+from errors import SensorSetupError, SensorTimeoutError
+from logs import get_logger
+from sensors.base import AbstractSensor, SensorCapability, SensorModel
+from utils import get_instant
+
+logger = get_logger("SENSOR", sub="LM35DZ")
+
+# ── Registradores do ADS1115 ───────────────────────────────────────────────
+_REG_CONVERSION = 0x00
+_REG_CONFIG     = 0x01
+
+# Bits do registrador de configuração (16-bit)
+_OS_SINGLE   = 0x8000  # Inicia conversão single-shot
+_MODE_SINGLE = 0x0100  # Modo single-shot
+
+# Multiplexador: canal single-ended (AINx vs GND)
+_MUX = {
+    0: 0x4000,  # AIN0
+    1: 0x5000,  # AIN1
+    2: 0x6000,  # AIN2
+    3: 0x7000,  # AIN3
+}
+
+# PGA ±6.144 V → FSR = 6.144 V → 1 LSB ≈ 187.5 µV
+# Com 5V e LM35DZ saindo no máximo ~1V (100°C), ±6.144V cobre com folga
+_PGA_2048 = 0x0400
+_FSR_2048 = 2.048
+
+# Data rate: 128 SPS (padrão — ~8 ms por conversão)
+_DR_128SPS = 0x0080
+
+# Timeout para aguardar fim da conversão single-shot
+_CONVERSION_TIMEOUT_S = 0.1
+
+# Sensibilidade do LM35DZ: 10 mV/°C
+_MV_PER_CELSIUS = 10.0
 class LM35DZTemperatureSensor(AbstractSensor):
     sensor_name = "Analog Temperature Sensor"
     model = SensorModel.LM35DZ
