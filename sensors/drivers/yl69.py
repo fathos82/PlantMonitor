@@ -152,15 +152,15 @@ class YL69SoilMoistureSensor(AbstractSensor):
 
     def _read_ads1115(self) -> int:
         config = (
-            _OS_SINGLE
-            | _MUX[self.adc_channel]
-            | _PGA_4096
-            | _MODE_SINGLE
-            | _DR_128SPS
+                _OS_SINGLE
+                | _MUX[self.adc_channel]
+                | _PGA_4096
+                | _MODE_SINGLE
+                | _DR_128SPS
         )
 
         high_byte = (config >> 8) & 0xFF
-        low_byte  =  config       & 0xFF
+        low_byte = config & 0xFF
         self._bus.write_i2c_block_data(
             self.i2c_address, _REG_CONFIG, [high_byte, low_byte]
         )
@@ -178,8 +178,14 @@ class YL69SoilMoistureSensor(AbstractSensor):
             time.sleep(0.001)
 
         data = self._bus.read_i2c_block_data(self.i2c_address, _REG_CONVERSION, 2)
-        return struct.unpack(">h", bytes(data))[0]
+        raw = struct.unpack(">h", bytes(data))[0]  # ← Já está certo aqui!
 
+        # MAS o problema é que você está pegando o ADC bruto errado antes!
+        # Adicione isto:
+        if raw > 0x7FFF:
+            raw -= 0x10000
+
+        return raw
     # ------------------------------------------------------------------ #
     # Identidade                                                           #
     # ------------------------------------------------------------------ #
