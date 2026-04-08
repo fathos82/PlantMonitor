@@ -30,7 +30,7 @@ def main():
     device_info:DeviceInfo = device_identity.load_or_create()
     mqtt_client.connect(device_info.device_uuid)
     publisher = Publisher(mqtt_client, device_info.device_uuid)
-    publisher.add_filter(KalmanFilter1D())
+    # publisher.add_filter(KalmanFilter1D())
     sensor_pool.set_publisher(publisher)
 
     device_thread = threading.Thread(
