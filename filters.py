@@ -8,7 +8,7 @@ class Filter(ABC):
         pass
 
 class KalmanFilter1D(Filter):
-    def __init__(self, q=0.01, r=0.1, x0=0.0):
+    def __init__(self, q=0.01, r=1, x0=25):
         self.q = q    # ruído do processo
         self.r = r    # ruído da medição
         self.p = 1.0  # incerteza estimada
