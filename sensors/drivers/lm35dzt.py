@@ -29,8 +29,8 @@ _MUX = {
 
 # PGA ±6.144 V → FSR = 6.144 V → 1 LSB ≈ 187.5 µV
 # Com 5V e LM35DZ saindo no máximo ~1V (100°C), ±6.144V cobre com folga
-_PGA_2048 = 0x0400
-_FSR_2048 = 2.048
+_PGA_0512 = 0x0A00
+_FSR_0512 = 0.512
 
 # Data rate: 128 SPS (padrão — ~8 ms por conversão)
 _DR_128SPS = 0x0080
