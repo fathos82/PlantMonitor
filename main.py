@@ -8,6 +8,7 @@ from api import mqtt, client
 from api.mqtt import mqtt_client
 from device import identity as device_identity
 from device_info import DeviceInfo
+from filters import KalmanFilter1D
 from publisher import Publisher
 from sensors.pool import sensor_pool
 from settings import WATCHER_SLEEP_TIME, BASE_API_URL
