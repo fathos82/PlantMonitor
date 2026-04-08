@@ -24,7 +24,7 @@ import os
 import logging
 
 DEFAULT_LOG_RULES = {
-    "SYSTEM": logging.DEBUGs,
+    "SYSTEM": logging.DEBUG,
     "SENSOR_POOL": logging.DEBUG,
     "SENSOR_WORKER": logging.DEBUG,
     "DEVICE": logging.DEBUG,
