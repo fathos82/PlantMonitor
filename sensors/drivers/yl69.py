@@ -131,6 +131,8 @@ class YL69SoilMoistureSensor(AbstractSensor):
         voltage_v = raw * (_FSR_4096 / 32767.0)
 
         moisture = (self.v_dry - voltage_v) / (self.v_dry - self.v_wet) * 100.0
+        print(
+            f"ADC bruto: {raw} | Voltage: {voltage_v:.3f}V | Moisture: {moisture:.1f}% | V_dry: {self.v_dry} | V_wet: {self.v_wet}")
         moisture = round(max(0.0, min(100.0, moisture)), 2)
 
         logger.debug(
