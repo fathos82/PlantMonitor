@@ -38,7 +38,7 @@ class Publisher:
                 batch = self.batches[topic]
                 sensor_read = batch.readings.add()
 
-                valor = data.get("value", data.get(capability))
+                valor = data.get(capability)
                 valor = round(valor, 2)
                 sensor_read.value = valor
                 agora_ms = int(time.time() * 1000)
