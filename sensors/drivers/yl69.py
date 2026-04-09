@@ -29,6 +29,10 @@ _MUX = {
 _PGA_4096 = 0x0200
 _FSR_4096 = 4.096
 
+
+
+
+
 _DR_128SPS            = 0x0080
 _CONVERSION_TIMEOUT_S = 0.1
 
