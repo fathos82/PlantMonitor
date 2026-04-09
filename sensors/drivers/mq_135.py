@@ -67,7 +67,7 @@ _CALIBRATION_PPM_CO2 = 400.0  # CO2 padrão do ar limpo: ~400 ppm
 class MQ135AirQualitySensor(AbstractSensor):
     sensor_name = "Air Quality Sensor"
     model = SensorModel.MQ135
-    capabilities = [SensorCapability.AIR_QUALITY, SensorCapability.SfTATUS]
+    capabilities = [SensorCapability.AIR_QUALITY]
     interface = "I2C"
 
     def configure(self, **params) -> None:
