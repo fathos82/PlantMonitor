@@ -5,8 +5,12 @@ from typing import List, Optional, Dict
 
 from enum import Enum
 
+from typing import Type, TypeVar
 
 
+
+
+E = TypeVar("E", bound=Enum)
 class SensorCapability(str, Enum):
     MOCK = "mock"
     # Distância / Proximidade
@@ -30,15 +34,36 @@ class SensorCapability(str, Enum):
     CURRENT = "current"
     POWER = "power"
     BATTERY_LEVEL = "battery_level"
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().upper().replace("-", "_")
 
-from enum import Enum
+            for member in cls:
+                if member.value.replace("-", "_") == normalized:
+                    return member
 
-from enum import Enum
-from typing import Type, TypeVar
+        # 👇 erro descritivo
+        valid_values = [m.value for m in cls]
+        raise ValueError(
+            f"SensorModel inválido: '{value}'. "
+            f"Valores válidos: {valid_values}"
+        )
+    @classmethod
+    def _missing_(cls: Type[E], value: object) -> E:
+        if value is None:
+            raise ValueError("None is not a valid SensorModel")
+
+        normalized = str(value).strip().upper().replace("-", "_")
+
+        for member in cls:
+            if member.name == normalized:
+                return member
+
+        raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
 
 
-E = TypeVar("E", bound=Enum)
 from enum import Enum
 
 class SensorModel(str, Enum):
