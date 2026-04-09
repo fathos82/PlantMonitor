@@ -23,7 +23,7 @@ class SensorCapability(str, Enum):
     ORIENTATION = "orientation"
     # Qualidade / Status
     SIGNAL_STRENGTH = "signal_strength"
-    QUALITY = "quality"
+    AIR_QUALITY = "air_quality"
     STATUS = "status"
     # Energia
     VOLTAGE = "voltage"
@@ -42,6 +42,7 @@ E = TypeVar("E", bound=Enum)
 from enum import Enum
 
 class SensorModel(str, Enum):
+    MQ135 = "MQ-135"
     MOCK = "MOCK"
     HC_SR04 = "HC-SR04"
     LM35DZ = "LM35DZ"
