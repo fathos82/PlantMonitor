@@ -204,6 +204,8 @@ class MQ135AirQualitySensor(AbstractSensor):
         if voltage_v >= v_ref:
             logger.warning("Leitura de voltagem saturada (%.4fV), usando valor máximo", voltage_v)
             voltage_v = v_ref - 0.001
+        if voltage_v < 0.05:
+            voltage_v = 0.05
 
         rs_ohm = self.rl_ohm * (v_ref - voltage_v) / voltage_v
 
