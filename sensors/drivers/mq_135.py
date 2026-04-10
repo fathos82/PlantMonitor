@@ -199,7 +199,8 @@ class MQ135AirQualitySensor(AbstractSensor):
         # Calcular resistência do sensor (Rs)
         # Rs = RL × (V_ref - V_out) / V_out
         # Assumindo V_ref = 5V (típico em Arduino/Raspberry Pi com ADS1115)
-        v_ref = 5.0
+        # TODO: TORNAR ISSO CONFIGURAVEL
+        v_ref = 3.5
         if voltage_v >= v_ref:
             logger.warning("Leitura de voltagem saturada (%.4fV), usando valor máximo", voltage_v)
             voltage_v = v_ref - 0.001
