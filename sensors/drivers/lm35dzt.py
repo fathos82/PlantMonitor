@@ -1,3 +1,4 @@
+import random
 import struct
 import time
 from typing import Dict
@@ -78,6 +79,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             )
 
     def setup(self) -> None:
+        return
         logger.info("Iniciando setup do sensor")
 
         try:
@@ -102,6 +104,7 @@ class LM35DZTemperatureSensor(AbstractSensor):
             ) from exc
 
     def probe(self) -> bool:
+        return  True
         """
         Verifica se o ADS1115 responde no endereço I2C configurado
         tentando ler o registrador de configuração.
@@ -126,6 +129,10 @@ class LM35DZTemperatureSensor(AbstractSensor):
             return False
 
     def read(self) -> Dict[SensorCapability, float]:
+        return {
+            SensorCapability.TEMPERATURE:round(random.uniform(25, 27), 2),
+            "measuredAt": get_instant(),
+        }
         """
         Dispara uma conversão single-shot no ADS1115, aguarda o resultado
         e retorna a temperatura em graus Celsius.

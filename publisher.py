@@ -45,7 +45,7 @@ class Publisher:
                 sensor_read.delta_ms = agora_ms - batch.base_timestamp
 
                 if len(batch.readings) >= BATCH_SIZE:
-                    batch = self._apply_filters(batch)
+                    # batch = self._apply_filters(batch)
                     logger.debug("Publishing topic %s", topic)
                     payload = batch.SerializeToString()
                     self._client.publish(topic, payload)
